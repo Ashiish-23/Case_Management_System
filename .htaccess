@@ -1,0 +1,3 @@
+AddType application/x-httpd-php .html .htm
+# or on some setups:
+# AddHandler application/x-httpd-php .html .htm
