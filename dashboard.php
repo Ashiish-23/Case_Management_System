@@ -17,7 +17,7 @@ $user = $_SESSION['user'];
 <body>
 <div class="container">
     <h2>Dashboard</h2>
-    <p>Welcome, <strong><?php echo htmlspecialchars($user['name']); ?></strong> (Role: <?php echo htmlspecialchars($user['role']); ?>)</p>
+    <p>Welcome, <strong><?php echo htmlspecialchars($user['name']); ?></strong> </p>
 
     <ul>
         <li><a href="#">Create New Case (coming soon)</a></li>

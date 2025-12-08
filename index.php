@@ -20,7 +20,7 @@ session_start();
             <a href="logout.php" class="btn btn-secondary">Logout</a>
         <?php else: ?>
             <a href="login.php" class="btn">Login</a>
-            <a href="register.php" class="btn btn-secondary">Register (Admin Only)</a>
+            <a href="register.php" class="btn btn-secondary">Register</a>
         <?php endif; ?>
     </div>
 </body>

@@ -4,6 +4,14 @@ session_start();
 require 'config.php';
 
 $message = "";
+$success_message = "";
+
+// --- 1. CATCH SUCCESS MESSAGES FROM OTHER PAGES ---
+// This handles "Registration Successful" or "Password Updated" redirects
+if (isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']); // Clear it so it doesn't show on refresh
+}
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $username = trim($_POST['username'] ?? '');
@@ -20,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // Correct login
             $_SESSION['user'] = [
                 'id'             => $user['id'],
-                'name'           => $user['name'],
+                'name'           => $user['NAME'],
                 'username'       => $user['username'],
                 'role'           => $user['role'],
                 'police_station' => $user['police_station']
@@ -45,8 +53,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <h2>Login</h2>
     <p>Enter your credentials to access the system.</p>
 
+    <?php if ($success_message): ?>
+        <div class="success" style="color: #15803d; background: #dcfce7; padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #15803d;">
+            <?php echo htmlspecialchars($success_message); ?>
+        </div>
+    <?php endif; ?>
+
     <?php if ($message): ?>
-        <div class="error">
+        <div class="error" style="color: #b91c1c; background: #fee2e2; padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #b91c1c;">
             <?php echo htmlspecialchars($message); ?>
         </div>
     <?php endif; ?>
@@ -57,10 +71,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <label>Password</label>
         <input type="password" name="password" required>
+        
+        <div style="text-align: right; margin-bottom: 15px; margin-top: 10px;">
+            <a href="Forgot_pass.php" style="color: #4b5563; text-decoration: none; font-size: 0.85rem;">Forgot Password?</a>
+        </div>
 
         <button type="submit" class="btn">Login</button>
         <a href="index.php" class="btn btn-secondary">Back</a>
     </form>
+    
 </div>
 </body>
 </html>
