@@ -27,7 +27,6 @@ $user = $_SESSION['user'];
         <li><a href="#">Generate Reports (coming soon)</a></li>
     </ul>
 
-    <a href="index.php" class="btn">Home</a>
     <a href="logout.php" class="btn btn-secondary">Logout</a>
 </div>
 </body>
