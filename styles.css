@@ -1,15 +1,60 @@
+/* 1. Global Reset & Body Setup */
 body {
     font-family: Arial, sans-serif;
-    background: #f4f6f9;
+    background-color: #f4f6f9; /* Light grey background */
     margin: 0;
     padding: 0;
+    
+    /* --- WATERMARK SETUP --- */
+    /* This ensures the body takes up the full screen height */
+    min-height: 100vh; 
+    /* Required to position the watermark layer */
+    position: relative; 
+    /* Ensures the form content sits ON TOP of the watermark */
+    z-index: 1;
+    overflow-x: hidden;
 }
 
+/* 2. The Police Logo Watermark Layer */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    /* --- IMAGE PATH --- */
+    background-image: url('police.png'); 
+    /* ------------------ */
+    
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 500px; /* Adjust this to make logo bigger/smaller */
+    background-attachment: fixed; /* Keeps logo centered when scrolling */
+    
+    /* THE FADE: 0.15 is faint, 1.0 is solid. Adjust as needed. */
+    opacity: 0.15; 
+    
+    /* Puts the logo behind the text */
+    z-index: -1; 
+}
+
+/* 3. The Form Container (Login/Register Box) */
 .container {
     max-width: 500px;
     margin: 60px auto;
     padding: 30px;
-    background: #ffffff;
+    
+    /* --- TRANSPARENCY FIX --- */
+    /* Solid white (#ffffff) blocks the logo. */
+    /* We use rgba for 92% opacity so the logo shows through faintly. */
+    background: rgba(255, 255, 255, 0.92); 
+    
+    /* Adds a modern "frosted glass" blur effect */
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px); 
+    
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
@@ -28,6 +73,7 @@ p {
     margin-bottom: 20px;
 }
 
+/* 4. Input Fields */
 input[type="text"],
 input[type="password"],
 input[type="email"],
@@ -38,8 +84,11 @@ select {
     border-radius: 6px;
     border: 1px solid #cbd2e1;
     box-sizing: border-box;
+    /* Ensure inputs have a solid background so text is readable */
+    background: #fff; 
 }
 
+/* 5. Buttons */
 .btn {
     display: inline-block;
     padding: 10px 16px;
@@ -51,6 +100,7 @@ select {
     color: white;
     font-weight: 600;
     cursor: pointer;
+    transition: opacity 0.2s;
 }
 
 .btn-secondary {
@@ -61,12 +111,27 @@ select {
     opacity: 0.9;
 }
 
+/* 6. Messages */
 .error {
     color: #b91c1c;
+    background-color: #fee2e2;
+    padding: 10px;
+    border-radius: 4px;
     margin-bottom: 10px;
+    border: 1px solid #fecaca;
 }
 
 .success {
     color: #15803d;
+    background-color: #dcfce7;
+    padding: 10px;
+    border-radius: 4px;
     margin-bottom: 10px;
+    border: 1px solid #bbf7d0;
+}
+
+/* 7. Element with Backdrop Filter */
+.element {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
