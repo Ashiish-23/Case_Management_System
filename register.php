@@ -104,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <input type="text" name="police_station" placeholder="e.g., Murbad PS" value="<?= htmlspecialchars($police_station) ?>">
 
         <button type="submit" class="btn">Register</button>
-        <a href="login.php" class="btn btn-secondary">Back</a>
+        <a href="index.php" class="btn btn-secondary">Back</a>
     </form>
 </div>
 </body>
