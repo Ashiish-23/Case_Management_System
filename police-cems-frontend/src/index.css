@@ -1,0 +1,52 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
+
+.container {
+  text-align: center;
+  margin-top: 80px;
+}
+
+.form {
+  width: 320px;
+  margin: 60px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+input, select, button {
+  padding: 10px;
+  font-size: 14px;
+}
+
+button {
+  background: #1e3a8a;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1e40af;
+}
+
+.link {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.subtitle {
+  color: gray;
+}
+
+.btn-group button {
+  margin: 10px;
+}
+button.secondary {
+  background: gray;
+}
+button.secondary:hover {
+  background: darkgray;
+}
