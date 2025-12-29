@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const authRoutes = require("./routes/auth");
 const app = express();
+const dashboardRoutes = require("./routes/dashboard");
 app.use(cors());
 app.use(express.json());
 
@@ -14,3 +15,7 @@ app.listen(5000, () => {
 });
 
 app.use("/api/password", require("./routes/password"));
+
+app.use("/api/dashboard", dashboardRoutes);
+
+app.use("/api/cases", require("./routes/cases"));

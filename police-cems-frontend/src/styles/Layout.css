@@ -1,0 +1,21 @@
+.layout{
+  display:flex;
+  min-height:100vh;
+}
+
+.sidebar{
+  width:230px;
+  background:#041334;
+  color:white;
+  padding:20px;
+}
+
+.main{
+  flex:1;
+  padding:20px;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+}

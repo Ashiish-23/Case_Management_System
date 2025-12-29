@@ -5,6 +5,7 @@ import Login from "./pages/login";
 import ForgotPassword from "./pages/forgotpassword";
 import ResetPassword from "./pages/resetpassword";
 import Dashboard from "./pages/dashboard";
+import CreateCase from "./pages/CreateCases";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/cases/create" element={<CreateCase/>}/>
       </Routes>
     </BrowserRouter>
   );
