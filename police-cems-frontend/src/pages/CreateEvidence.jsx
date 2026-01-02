@@ -1,103 +1,58 @@
-import "./CaseForm.css";
+import { useState } from "react";
+import "../styles/modal.css";
 
-export default function CreateEvidence() {
+export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
+
+  const [description,setDescription] = useState("");
+  const [category,setCategory] = useState("");
+  const [image,setImage] = useState(null);
+
+  const submit = async e => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+
+    const form = new FormData();
+    form.append("caseId", caseId);
+    form.append("description", description);
+    form.append("category", category);
+    if(image) form.append("image", image);
+
+    await fetch("http://localhost:5000/api/evidence/add",{
+      method:"POST",
+      headers:{ Authorization:"Bearer "+token },
+      body: form
+    });
+
+    onAdded();
+    onClose();
+  };
+
   return (
-    <div className="layout">
+    <div className="modal">
+      <div className="modal-box">
 
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="logo">POLICE EMS</div>
+        <h3>Add Evidence</h3>
 
-        <nav>
-          <a>Dashboard</a>
-          <a>Manage Locations</a>
-          <a>Case & Evidence</a>
-          <a>Stock Report</a>
-          <a>Data Entry Report</a>
-          <a>Blockchain</a>
-          <a>Manage Staff</a>
-          <a>System Settings</a>
-          <a className="logout">Logout</a>
-        </nav>
-      </aside>
+        <form onSubmit={submit}>
 
+          <label>Description</label>
+          <textarea value={description} onChange={e=>setDescription(e.target.value)} />
 
-      {/* Main Content */}
-      <main className="content">
+          <label>Category</label>
+          <input value={category} onChange={e=>setCategory(e.target.value)} />
 
-        <h2 className="page-title">Case & Evidence Entry</h2>
+          <label>Upload Image</label>
+          <input type="file" onChange={e=>setImage(e.target.files[0])} />
 
-        <form className="form-panel">
-
-          {/* Officer Section */}
-          <h3>Officer Details</h3>
-          <div className="grid">
-            <input placeholder="Officer Name" required />
-            <input placeholder="Police ID" required />
-            <input placeholder="Email ID" type="email" />
+          <div className="modal-actions">
+            <button type="button" onClick={onClose}>Cancel</button>
+            <button type="submit">Add</button>
           </div>
-
-
-          {/* Case Section */}
-          <h3>Case Details</h3>
-          <div className="grid">
-            <input placeholder="Case Number" required />
-            <input placeholder="Station Name" />
-            <input placeholder="Case Type (Theft, NDPS, Cyber etc)" />
-          </div>
-
-
-          {/* Seizure Section */}
-          <h3>Seizure Details</h3>
-          <div className="grid">
-            <input placeholder="Seizure Location" />
-            <input placeholder="Seized From (Person/Firm)" />
-            <input placeholder="Date of Seizure" type="date" />
-          </div>
-
-
-          {/* Evidence Section */}
-          <h3>Evidence Details</h3>
-          <div className="grid">
-            <input placeholder="Evidence Name" required />
-            <select>
-              <option>Select Evidence Category</option>
-              <option>Electronics</option>
-              <option>Narcotics</option>
-              <option>Documents</option>
-              <option>Money</option>
-              <option>Weapons</option>
-              <option>Other</option>
-            </select>
-            <input placeholder="Quantity" type="number" />
-          </div>
-
-
-          {/* Storage Section */}
-          <h3>Storage Details</h3>
-          <div className="grid">
-            <select>
-              <option>Select Rack</option>
-              <option>Rack A</option>
-              <option>Rack B</option>
-            </select>
-
-            <input placeholder="Box Number" />
-            <input placeholder="Estimated Value (₹)" type="number" />
-          </div>
-
-
-          {/* Files */}
-          <h3>Attach Files</h3>
-          <input type="file" />
-
-
-          {/* Submit */}
-          <button className="submit-btn">Submit</button>
 
         </form>
 
-      </main>
+      </div>
     </div>
   );
 }

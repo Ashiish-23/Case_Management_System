@@ -1,0 +1,90 @@
+/* Dimmed background */
+.modal-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,.45);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+
+/* Modal Card */
+.modal-card{
+  width:480px;
+  background:white;
+  padding:25px 30px;
+  border-radius:10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+  font-family:system-ui;
+}
+
+/* Title */
+.modal-title{
+  margin-top:0;
+  margin-bottom:15px;
+  color:#0b3d91;
+}
+
+/* Form Styling */
+.modal-form label{
+  font-weight:600;
+  color:#0b3d91;
+  font-size:14px;
+  margin-top:12px;
+  display:block;
+}
+
+.modal-form input,
+.modal-form textarea{
+  width:100%;
+  padding:10px;
+  border-radius:6px;
+  border:1.5px solid #0b3d91;
+  font-size:14px;
+  margin-top:4px;
+  outline:none;
+}
+
+.modal-form textarea{
+  resize:vertical;
+  min-height:70px;
+}
+
+/* Button Row */
+.modal-actions{
+  margin-top:18px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+/* Buttons */
+.primary-btn{
+  padding:10px 16px;
+  background:#0b3d91;
+  color:white;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.secondary-btn{
+  padding:10px 16px;
+  border:1.5px solid #0b3d91;
+  color:#0b3d91;
+  background:white;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.primary-btn:hover{
+  background:#06296d;
+}
+
+.secondary-btn:hover{
+  background:#eef3ff;
+}

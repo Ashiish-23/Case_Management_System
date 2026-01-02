@@ -1,8 +1,8 @@
-export default function Topbar({ user, onLogout }) {
+export default function Topbar({ onLogout }) {
   return (
     <header className="topbar">
-      <div>Welcome, {user?.name || "Officer"}</div>
-      <button onClick={onLogout}>Logout</button>
+      <div></div>
+      <button  onClick={onLogout}>Logout</button>
     </header>
   );
 }

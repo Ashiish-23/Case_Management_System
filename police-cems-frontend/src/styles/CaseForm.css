@@ -69,3 +69,7 @@ input, select {
   font-weight: bold;
   cursor: pointer;
 }
+.case-table tbody tr:hover {
+  background:#eef3ff;
+  cursor:pointer;
+}

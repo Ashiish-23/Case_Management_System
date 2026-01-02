@@ -1,4 +1,4 @@
-import "./MarqueeStats.css";
+import "../styles/MarqueeStats.css";
 
 export default function MarqueeStats({ stats }) {
 

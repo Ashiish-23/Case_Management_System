@@ -100,3 +100,15 @@
 .case-table tbody tr:last-child td:last-child {
   border-bottom-right-radius: 8px;
 }
+.case-table tbody tr:hover {
+  background:#eef3ff;
+  cursor:pointer;
+}
+.case-category {
+  background:#eaf2ff;
+  color:#0b3d91;
+  padding:6px 10px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:600;
+}

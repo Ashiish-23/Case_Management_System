@@ -15,9 +15,6 @@ async function generateCaseNumber(){
 router.post("/create", auth, async(req,res)=>{
 
   try{
-    if(req.user.role === "Constable")
-      return res.status(403).json({error:"Not authorized"});
-
     const {
       caseTitle,
       caseType,
@@ -71,6 +68,7 @@ router.get("/", auth, async(req,res)=>{
         id,
         case_number,
         case_title,
+        case_type,
         status,
         registered_date
       FROM cases

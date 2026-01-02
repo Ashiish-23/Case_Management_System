@@ -87,3 +87,7 @@
 .secondary-btn:hover{
   background:#eef3ff;
 }
+.case-header{
+  text-align:center;
+  margin-bottom:20px;
+}
