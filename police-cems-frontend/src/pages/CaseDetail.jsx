@@ -102,7 +102,7 @@ export default function CaseDetail(){
                   <td>{e.evidence_code}</td>
                   <td>{e.description}</td>
                   <td>{e.category ?? "-"}</td>
-                  <td>{e.logged_by ?? "Officer"}</td>
+                  <td>{e.officer_name ?? "Unknown"}</td>
                   <td>{new Date(e.logged_at).toLocaleDateString("en-GB")}</td>
                 </tr>
               ))}

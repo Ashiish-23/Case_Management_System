@@ -75,3 +75,28 @@
   background:#f3f7ff;
   cursor:pointer;
 }
+.evidence-table td,
+.evidence-table th{
+  text-align: center;
+  vertical-align: middle;
+  padding: 10px 8px;
+}
+
+.evidence-table th{
+  background:#06193A;
+  color:white;
+}
+
+.evidence-table td:first-child{
+  font-weight:600;
+}
+
+.evidence-table{
+  width:100%;
+  border-collapse: collapse;
+}
+
+.evidence-table tr:hover{
+  background:#f3f7ff;
+  cursor:pointer;
+}

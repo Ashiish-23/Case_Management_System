@@ -15,6 +15,8 @@ async function generateCaseNumber(){
 router.post("/create", auth, async(req,res)=>{
 
   try{
+    const officerId = req.user.userId;   // <-- logged-in officer
+
     const {
       caseTitle,
       caseType,
@@ -29,7 +31,6 @@ router.post("/create", auth, async(req,res)=>{
       return res.status(400).json({error:"Missing required fields"});
 
     const caseNumber = await generateCaseNumber();
-
     await pool.query(`
       INSERT INTO cases
       (case_number,fir_number,station_name,officer_name,officer_rank,
@@ -41,11 +42,11 @@ router.post("/create", auth, async(req,res)=>{
       stationName,
       officerName,
       officerRank,
-      req.user.userId,
+      officerId,        // <-- auto stamp login id
       caseTitle,
       description,
       caseType,
-      req.user.userId
+      officerId         // <-- auto stamp creator
     ]);
 
     res.json({
@@ -57,11 +58,11 @@ router.post("/create", auth, async(req,res)=>{
     console.error(err);
     res.status(500).json({error:"Server error"});
   }
-
 });
 
 // ---------- LIST ALL CASES ----------
 router.get("/", auth, async(req,res)=>{
+
   try{
     const result = await pool.query(`
       SELECT 
@@ -81,10 +82,12 @@ router.get("/", auth, async(req,res)=>{
     console.error(err);
     res.status(500).json({error:"Server Error"});
   }
+
 });
 
 // ---------- GET CASE BY ID ----------
 router.get("/:id", auth, async(req,res)=>{
+
   try{
     const result = await pool.query(
       "SELECT * FROM cases WHERE id=$1",
@@ -97,6 +100,7 @@ router.get("/:id", auth, async(req,res)=>{
     console.error(err);
     res.status(500).json({error:"Server Error"});
   }
+
 });
 
 module.exports = router;
