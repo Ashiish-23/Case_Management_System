@@ -1,9 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+
 import AddEvidenceModal from "../components/AddEvidenceModal";
+import EvidenceActionModal from "../components/EvidenceActionModal";
+import CaseStatusModal from "../components/CaseStatusModal";   // <-- ADD THIS
 import Sidebar from "../components/Sidebar";
 
 import "../styles/CaseDetail.css";
+
 
 export default function CaseDetail(){
 
@@ -13,6 +17,8 @@ export default function CaseDetail(){
   const [caseData,setCaseData] = useState(null);
   const [evidence,setEvidence] = useState([]);
   const [showAddModal,setShowAddModal] = useState(false);
+  const [selectedEvidence,setSelectedEvidence] = useState(null);
+  const [showStatusModal,setShowStatusModal] = useState(false);
 
 
   // ---------- LOAD DATA ----------
@@ -33,6 +39,7 @@ export default function CaseDetail(){
     })
     .then(res=>res.json())
     .then(setEvidence);
+
   }, [id]);
 
 
@@ -62,7 +69,10 @@ export default function CaseDetail(){
 
           <p className="case-title">{caseData.case_title}</p>
 
-          <span className={`case-status ${caseData.status.toLowerCase()}`}>
+          <span 
+            className={`case-status ${caseData.status.toLowerCase()}`}
+            onDoubleClick={()=>setShowStatusModal(true)}   // <-- open status modal
+          >
             {caseData.status}
           </span>
         </div>
@@ -95,17 +105,19 @@ export default function CaseDetail(){
               </tr>
             </thead>
 
-
             <tbody>
               {evidence.map(e=>(
-                <tr key={e.id}>
+                <tr 
+                  key={e.id} 
+                  onDoubleClick={()=>setSelectedEvidence(e)}
+                >
                   <td>{e.evidence_code}</td>
                   <td>{e.description}</td>
                   <td>{e.category ?? "-"}</td>
                   <td>{e.officer_name ?? "Unknown"}</td>
                   <td>{new Date(e.logged_at).toLocaleDateString("en-GB")}</td>
                 </tr>
-              ))}
+              ))} 
             </tbody>
 
           </table>
@@ -121,6 +133,26 @@ export default function CaseDetail(){
           caseId={id}
           onClose={()=>setShowAddModal(false)}
           onAdded={()=>loadData()}
+        />
+      }
+
+
+      {/* --------- ACTION MODAL ---------- */}
+      {selectedEvidence &&
+        <EvidenceActionModal
+          data={selectedEvidence}
+          close={()=>setSelectedEvidence(null)}
+        />
+      }
+
+
+      {/* --------- STATUS MODAL ---------- */}
+      {showStatusModal &&
+        <CaseStatusModal
+          caseId={id}
+          currentStatus={caseData.status}
+          onClose={()=>setShowStatusModal(false)}
+          onUpdated={()=>loadData()}
         />
       }
 

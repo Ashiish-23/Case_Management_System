@@ -103,4 +103,59 @@ router.get("/:id", auth, async(req,res)=>{
 
 });
 
+// ---------- CLOSE CASE ----------
+router.post("/:id/close", auth, async(req,res)=>{
+
+  try{
+    const caseId = req.params.id;
+    const user = req.user;
+    const { reason, authority_reference } = req.body;
+
+    if(!reason || !authority_reference)
+      return res.status(400).json({error:"Reason & Authority Reference required"});
+
+    // restrict who can close
+    if(user.role !== "ADMIN" && user.role !== "SHO")
+      return res.status(403).json({error:"Permission denied"});
+
+    // get case
+    const c = await pool.query(
+      "SELECT status FROM cases WHERE id=$1",
+      [caseId]
+    );
+
+    if(c.rowCount === 0)
+      return res.status(404).json({error:"Case not found"});
+
+    if(c.rows[0].status === "CLOSED")
+      return res.status(400).json({error:"Case already closed"});
+
+
+    // insert closure log
+    await pool.query(`
+      INSERT INTO case_closures
+      (case_id, closed_by, closed_role, reason, authority_reference, previous_status, new_status)
+      VALUES ($1,$2,$3,$4,$5,'OPEN','CLOSED')
+    `,[
+      caseId,
+      user.userId,
+      user.role,
+      reason,
+      authority_reference
+    ]);
+
+    // update case
+    await pool.query(
+      "UPDATE cases SET status='CLOSED' WHERE id=$1",
+      [caseId]
+    );
+
+    res.json({success:true,message:"Case closed"});
+
+  }catch(err){
+    console.error(err);
+    res.status(500).json({error:"Server error"});
+  }
+});
+
 module.exports = router;
