@@ -1,7 +1,7 @@
 .marquee-wrapper {
   width: 100%;
   overflow: hidden;
-  background: #0f172a;
+  background: #061866;
   padding: 10px 0;
   border-radius: 6px;
 }
@@ -21,7 +21,7 @@
 
 .label {
   font-weight: bold;
-  color: #38bdf8;
+  color: #ffffff;
   margin-right: 5px;
 }
 

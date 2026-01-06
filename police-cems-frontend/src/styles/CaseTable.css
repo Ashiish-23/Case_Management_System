@@ -11,7 +11,7 @@
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 16px;
-  color: #0d1b42;
+  color: #42310d;
 }
 
 /* Table container */
@@ -29,7 +29,7 @@
 
 /* Header */
 .case-table thead tr {
-  background: #0b1b3f;
+  background: #170399;
   color: #ffffff;
 }
 
