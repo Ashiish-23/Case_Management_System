@@ -100,3 +100,13 @@
   background:#f3f7ff;
   cursor:pointer;
 }
+button.case-status {
+  border: none;
+  cursor: pointer;
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+  background:#ddffdd;
+  color:#146314;
+}

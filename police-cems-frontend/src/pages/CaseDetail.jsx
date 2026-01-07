@@ -69,12 +69,12 @@ export default function CaseDetail(){
 
           <p className="case-title">{caseData.case_title}</p>
 
-          <span 
-            className={`case-status ${caseData.status.toLowerCase()}`}
-            onDoubleClick={()=>setShowStatusModal(true)}   // <-- open status modal
+          <button type="button"
+              className={`case-status ${caseData.status.toLowerCase()}`}
+              onDoubleClick={() => setShowStatusModal(true)} // <-- Kept double click >
           >
             {caseData.status}
-          </span>
+          </button>
         </div>
 
 

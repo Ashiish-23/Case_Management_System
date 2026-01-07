@@ -3,7 +3,10 @@ const router = express.Router();
 const pool = require("../db");
 const auth = require("../middleware/authMiddleware");
 
-// ---------- CASE NUMBER GENERATOR ----------
+
+/* =========================================================
+   CASE NUMBER GENERATOR
+========================================================= */
 async function generateCaseNumber(){
   const result = await pool.query("SELECT COUNT(*) FROM cases");
   const count = Number(result.rows[0].count) + 1;
@@ -11,11 +14,14 @@ async function generateCaseNumber(){
   return `KSP-${new Date().getFullYear()}-${String(count).padStart(6,"0")}`;
 }
 
-// ---------- CREATE CASE ----------
+
+/* =========================================================
+   CREATE CASE
+========================================================= */
 router.post("/create", auth, async(req,res)=>{
 
   try{
-    const officerId = req.user.userId;   // <-- logged-in officer
+    const officerId = req.user.userId;
 
     const {
       caseTitle,
@@ -31,6 +37,7 @@ router.post("/create", auth, async(req,res)=>{
       return res.status(400).json({error:"Missing required fields"});
 
     const caseNumber = await generateCaseNumber();
+
     await pool.query(`
       INSERT INTO cases
       (case_number,fir_number,station_name,officer_name,officer_rank,
@@ -42,17 +49,14 @@ router.post("/create", auth, async(req,res)=>{
       stationName,
       officerName,
       officerRank,
-      officerId,        // <-- auto stamp login id
+      officerId,
       caseTitle,
       description,
       caseType,
-      officerId         // <-- auto stamp creator
+      officerId
     ]);
 
-    res.json({
-      success:true,
-      caseNumber
-    });
+    res.json({ success:true, caseNumber });
 
   }catch(err){
     console.error(err);
@@ -60,7 +64,10 @@ router.post("/create", auth, async(req,res)=>{
   }
 });
 
-// ---------- LIST ALL CASES ----------
+
+/* =========================================================
+   LIST ALL CASES
+========================================================= */
 router.get("/", auth, async(req,res)=>{
 
   try{
@@ -82,10 +89,12 @@ router.get("/", auth, async(req,res)=>{
     console.error(err);
     res.status(500).json({error:"Server Error"});
   }
-
 });
 
-// ---------- GET CASE BY ID ----------
+
+/* =========================================================
+   GET ONE CASE
+========================================================= */
 router.get("/:id", auth, async(req,res)=>{
 
   try{
@@ -94,68 +103,118 @@ router.get("/:id", auth, async(req,res)=>{
       [req.params.id]
     );
 
+    if(!result.rowCount)
+      return res.status(404).json({error:"Case not found"});
+
     res.json(result.rows[0]);
 
   }catch(err){
     console.error(err);
     res.status(500).json({error:"Server Error"});
   }
-
 });
 
-// ---------- CLOSE CASE ----------
-router.post("/:id/close", auth, async(req,res)=>{
+
+/* =========================================================
+   CLOSE CASE
+========================================================= */
+router.post("/close", auth, async(req,res)=>{
 
   try{
-    const caseId = req.params.id;
-    const user = req.user;
-    const { reason, authority_reference } = req.body;
+    const { caseId, reason, authority_reference } = req.body;
 
     if(!reason || !authority_reference)
-      return res.status(400).json({error:"Reason & Authority Reference required"});
+      return res.status(400).json({ error:"Reason & authority reference required" });
 
-    // restrict who can close
-    if(user.role !== "ADMIN" && user.role !== "SHO")
-      return res.status(403).json({error:"Permission denied"});
+    const userId = req.user.userId;
 
-    // get case
-    const c = await pool.query(
+    const current = await pool.query(
       "SELECT status FROM cases WHERE id=$1",
       [caseId]
     );
 
-    if(c.rowCount === 0)
-      return res.status(404).json({error:"Case not found"});
+    if(!current.rowCount)
+      return res.status(404).json({ error:"Case not found" });
 
-    if(c.rows[0].status === "CLOSED")
-      return res.status(400).json({error:"Case already closed"});
+    const prev = current.rows[0].status;
+
+    if(prev === "CLOSED")
+      return res.status(400).json({ error:"Already closed" });
 
 
-    // insert closure log
     await pool.query(`
-      INSERT INTO case_closures
-      (case_id, closed_by, closed_role, reason, authority_reference, previous_status, new_status)
-      VALUES ($1,$2,$3,$4,$5,'OPEN','CLOSED')
-    `,[
-      caseId,
-      user.userId,
-      user.role,
-      reason,
-      authority_reference
-    ]);
+      INSERT INTO case_status_history
+      (case_id, previous_status, new_status, reason, changed_by)
+      VALUES ($1,$2,$3,$4,$5)
+    `,[caseId, prev, "CLOSED", reason, userId]);
 
-    // update case
+
     await pool.query(
       "UPDATE cases SET status='CLOSED' WHERE id=$1",
       [caseId]
     );
 
-    res.json({success:true,message:"Case closed"});
+    res.json({ success:true });
+
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ error:"Server error" });
+  }
+});
+
+
+/* =========================================================
+   REOPEN CASE
+========================================================= */
+router.post("/:id/reopen", auth, async(req,res)=>{
+
+  try{
+    const caseId = req.params.id;
+    const { reason } = req.body;
+
+    const userId = req.user.userId;
+    const role = req.user.role;
+
+    if(!reason)
+      return res.status(400).json({ error:"Reason required" });
+
+    /*if(role !== "ADMIN" && role !== "SHO")
+      return res.status(403).json({error:"Not authorized"});*/
+
+
+    const current = await pool.query(
+      "SELECT status FROM cases WHERE id=$1",
+      [caseId]
+    );
+
+    if(!current.rowCount)
+      return res.status(404).json({error:"Case not found"});
+
+    const prev = current.rows[0].status;
+
+    if(prev !== "CLOSED")
+      return res.status(400).json({error:"Case not closed"});
+
+
+    await pool.query(`
+      INSERT INTO case_status_history
+      (case_id, previous_status, new_status, reason, changed_by)
+      VALUES ($1,$2,'REOPENED',$3,$4)
+    `,[caseId, prev, reason, userId]);
+
+
+    await pool.query(
+      "UPDATE cases SET status='REOPENED' WHERE id=$1",
+      [caseId]
+    );
+
+    res.json({success:true});
 
   }catch(err){
     console.error(err);
     res.status(500).json({error:"Server error"});
   }
 });
+
 
 module.exports = router;
