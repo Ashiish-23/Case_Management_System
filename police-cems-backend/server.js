@@ -16,8 +16,6 @@ app.listen(5000, () => {
 
 app.use("/api/password", require("./routes/password"));
 
-app.use("/api/dashboard", dashboardRoutes);
-
 app.use("/api/cases", require("./routes/cases"));
 
 app.use("/api/dashboard", require("./routes/dashboard"));

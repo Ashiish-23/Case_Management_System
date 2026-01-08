@@ -80,7 +80,14 @@ router.get("/", auth, async(req,res)=>{
         status,
         registered_date
       FROM cases
-      ORDER BY registered_date DESC
+      ORDER BY 
+        CASE 
+          WHEN status='OPEN' THEN 1
+          WHEN status='REOPENED' THEN 2
+          WHEN status='CLOSED' THEN 3
+          ELSE 4
+        END,
+        registered_date DESC
     `);
 
     res.json(result.rows);
@@ -90,7 +97,6 @@ router.get("/", auth, async(req,res)=>{
     res.status(500).json({error:"Server Error"});
   }
 });
-
 
 /* =========================================================
    GET ONE CASE
@@ -118,50 +124,56 @@ router.get("/:id", auth, async(req,res)=>{
 /* =========================================================
    CLOSE CASE
 ========================================================= */
-router.post("/close", auth, async(req,res)=>{
+router.post("/close", auth, async (req, res) => {
+  const client = await pool.connect();
 
-  try{
+  try {
     const { caseId, reason, authority_reference } = req.body;
-
-    if(!reason || !authority_reference)
-      return res.status(400).json({ error:"Reason & authority reference required" });
-
     const userId = req.user.userId;
 
-    const current = await pool.query(
-      "SELECT status FROM cases WHERE id=$1",
+    if (!reason || !authority_reference)
+      return res.status(400).json({ error: "Reason & authority reference required" });
+
+    await client.query("BEGIN");
+
+    const current = await client.query(
+      "SELECT status FROM cases WHERE id=$1 FOR UPDATE",
       [caseId]
     );
 
-    if(!current.rowCount)
-      return res.status(404).json({ error:"Case not found" });
+    if (!current.rows.length)
+      throw new Error("Case not found");
 
-    const prev = current.rows[0].status;
+    if (current.rows[0].status === "CLOSED")
+      throw new Error("Case already closed");
 
-    if(prev === "CLOSED")
-      return res.status(400).json({ error:"Already closed" });
-
-
-    await pool.query(`
+    await client.query(`
       INSERT INTO case_status_history
       (case_id, previous_status, new_status, reason, changed_by)
-      VALUES ($1,$2,$3,$4,$5)
-    `,[caseId, prev, "CLOSED", reason, userId]);
+      VALUES ($1, $2, 'CLOSED', $3, $4)
+    `, [
+      caseId,
+      current.rows[0].status,
+      reason,
+      userId
+    ]);
 
-
-    await pool.query(
+    await client.query(
       "UPDATE cases SET status='CLOSED' WHERE id=$1",
       [caseId]
     );
 
-    res.json({ success:true });
+    await client.query("COMMIT");
+    res.json({ success: true });
 
-  }catch(err){
+  } catch (err) {
+    await client.query("ROLLBACK");
     console.error(err);
-    res.status(500).json({ error:"Server error" });
+    res.status(400).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
-
 
 /* =========================================================
    REOPEN CASE
@@ -178,8 +190,8 @@ router.post("/:id/reopen", auth, async(req,res)=>{
     if(!reason)
       return res.status(400).json({ error:"Reason required" });
 
-    /*if(role !== "ADMIN" && role !== "SHO")
-      return res.status(403).json({error:"Not authorized"});*/
+    if(role !== "ADMIN" && role !== "SHO")
+      return res.status(403).json({error:"Not authorized"});
 
 
     const current = await pool.query(

@@ -61,7 +61,8 @@ export default function CaseStatusModal({caseId,currentStatus,onClose}){
         <h3>Case Status — {currentStatus}</h3>
 
 
-        {currentStatus === "OPEN" && (
+        {(currentStatus === "OPEN" || currentStatus === "REOPENED") && (
+
           <>
             <label>Reason for Closure</label>
             <textarea value={reason} onChange={e=>setReason(e.target.value)} />

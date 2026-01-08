@@ -47,9 +47,12 @@ export default function Dashboard() {
 
         setStats([
           { label: "Total Cases", value: data.totalCases },
-          { label: "Evidence Items", value: data.totalEvidence },
-          { label: "Pending Transfers", value: data.pendingTransfers },
-          { label: "Chain Violations", value: data.violations }
+          { label: "Evidence Items", value: data.evidenceItems },
+          { label: "Transfers", value: data.transfers },
+          { label: "Open Cases", value: data.openCases },
+          { label: "Re-opened Cases", value: data.reopenedCases },
+          { label: "Closed Cases", value: data.closedCases },
+          { label: "Chain Violations", value: data.chainViolations }
         ]);
       })
       .catch(console.error);

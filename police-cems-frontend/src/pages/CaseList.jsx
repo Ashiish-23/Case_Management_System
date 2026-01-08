@@ -44,10 +44,6 @@ export default function CaseTable({ cases: initialCases = [] }) {
 
   }, []);
 
-  const sortedCases = [...cases].sort(
-    (a, b) => new Date(b.registered_date) - new Date(a.registered_date)
-  );
-
   return (
     <div className="case-table-wrapper">
 
@@ -69,7 +65,7 @@ export default function CaseTable({ cases: initialCases = [] }) {
           </thead>
 
           <tbody>
-            {sortedCases.map(c => (
+            {cases.map(c => (
               <tr
                 key={c.id}
                 onClick={() => navigate(`/case/${c.id}`)}
