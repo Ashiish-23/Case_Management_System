@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Auth.css";
+// import "../styles/Auth.css"; // Deleted
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  // Keeps your exact token logic
   const token = new URLSearchParams(window.location.search).get("token");
 
   const [password, setPassword] = useState("");
@@ -31,29 +32,66 @@ export default function ResetPassword() {
     }
   };
 
+  // Reusable Input Style (Matches Login/Register)
+  const inputStyle = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
+
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2 className="auth-title">Reset Password</h2>
-        <p className="auth-subtitle">Create a new secure password</p>
+    // Main Container (Full Screen, Dark Background)
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      
+      {/* Background Ambience (Subtle Glows) */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <form className="auth-form" onSubmit={submit}>
-          <input
-            type="password"
-            placeholder="New Password"
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
+      {/* Auth Card (Glass Effect) */}
+      <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8 relative z-10">
+        
+        {/* Decorative Top Accent */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-cyan-500"></div>
 
-          <input
-            type="password"
-            placeholder="Confirm New Password"
-            onChange={e => setConfirmPassword(e.target.value)}
-            required
-          />
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-600 shadow-lg shadow-black/20">
+             {/* Key Icon */}
+             <span className="text-3xl">🔑</span>
+          </div>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Reset Password</h2>
+          <p className="text-slate-400 text-sm mt-2">Create a new secure password</p>
+        </div>
 
-          <button className="auth-button">Update Password</button>
+        {/* Form Section */}
+        <form className="space-y-6" onSubmit={submit}>
+          
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">New Password</label>
+            <input
+              type="password"
+              placeholder="Enter new password"
+              onChange={e => setPassword(e.target.value)}
+              required
+              className={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Confirm Password</label>
+            <input
+              type="password"
+              placeholder="Re-enter new password"
+              onChange={e => setConfirmPassword(e.target.value)}
+              required
+              className={inputStyle}
+            />
+          </div>
+
+          <button 
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            Update Password
+          </button>
+
         </form>
+
       </div>
     </div>
   );

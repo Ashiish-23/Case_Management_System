@@ -110,3 +110,14 @@ button.case-status {
   background:#ddffdd;
   color:#146314;
 }
+
+@media (max-width: 600px) {
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primary-btn {
+    width: 100%;
+  }
+}

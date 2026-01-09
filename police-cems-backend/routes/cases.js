@@ -193,7 +193,6 @@ router.post("/:id/reopen", auth, async(req,res)=>{
     if(role !== "ADMIN" && role !== "SHO")
       return res.status(403).json({error:"Not authorized"});
 
-
     const current = await pool.query(
       "SELECT status FROM cases WHERE id=$1",
       [caseId]

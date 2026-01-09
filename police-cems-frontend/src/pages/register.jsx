@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Auth.css";
+// import "../styles/Auth.css"; // Deleted: We don't need this anymore
 
 export default function Register() {
   const navigate = useNavigate();
@@ -35,34 +35,124 @@ export default function Register() {
     }
   };
 
-  return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2 className="auth-title">Officer Registration</h2>
-        <p className="auth-subtitle">Official police accounts only</p>
+  // Reusable styling for all input fields to keep code clean
+  const inputStyle = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
 
-        <form className="auth-form" onSubmit={submit}>
-          <input name="name" placeholder="Full Name" onChange={handleChange} required />
-          <input name="loginId" placeholder="Login ID" onChange={handleChange} required />
-          <input name="email" type="email" placeholder="Official Email" onChange={handleChange} required />
-          <select name="role" onChange={handleChange} required>
-            <option value="">Select Role</option>
-            <option>Constable</option>
-            <option>Head Constable</option>
-            <option>Sub-Inspector</option>
-            <option>Inspector</option>
-            <option>DSP</option>
-            <option>SP</option>
-          </select>
-          <input name="password" type="password" placeholder="Password" onChange={handleChange} required />
-          <input name="confirmPassword" type="password" placeholder="Confirm Password" onChange={handleChange} required />
-          <button className="auth-button" type="submit">Register</button>
-          <button type="button" onClick={() => navigate("/")}>Back</button>
+  return (
+    // Main Container (Full Screen, Dark Background)
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      
+      {/* Auth Card (Glass Effect) */}
+      <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8 relative overflow-hidden">
+        
+        {/* Decorative Top Accent */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-cyan-500"></div>
+
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-600">
+             <span className="text-3xl">👮</span>
+          </div>
+          <h2 className="text-3xl font-bold text-white tracking-tight">Officer Registration</h2>
+          <p className="text-slate-400 text-sm mt-2">Create an official police account</p>
+        </div>
+
+        {/* Form Section */}
+        <form className="space-y-4" onSubmit={submit}>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input 
+              name="name" 
+              placeholder="Full Name" 
+              onChange={handleChange} 
+              required 
+              className={inputStyle}
+            />
+            <input 
+              name="loginId" 
+              placeholder="Login ID (Badge No.)" 
+              onChange={handleChange} 
+              required 
+              className={inputStyle}
+            />
+          </div>
+
+          <input 
+            name="email" 
+            type="email" 
+            placeholder="Official Email (@police.gov.in)" 
+            onChange={handleChange} 
+            required 
+            className={inputStyle}
+          />
+
+          <div className="relative">
+            <select 
+              name="role" 
+              onChange={handleChange} 
+              required 
+              className={`${inputStyle} appearance-none cursor-pointer`}
+            >
+              <option value="" className="bg-slate-900 text-slate-400">Select Rank / Role</option>
+              <option className="bg-slate-800">Constable</option>
+              <option className="bg-slate-800">Head Constable</option>
+              <option className="bg-slate-800">Sub-Inspector</option>
+              <option className="bg-slate-800">Inspector</option>
+              <option className="bg-slate-800">DSP</option>
+              <option className="bg-slate-800">SP</option>
+            </select>
+            {/* Custom Arrow Icon for Select */}
+            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <input 
+              name="password" 
+              type="password" 
+              placeholder="Password" 
+              onChange={handleChange} 
+              required 
+              className={inputStyle}
+            />
+            <input 
+              name="confirmPassword" 
+              type="password" 
+              placeholder="Confirm Password" 
+              onChange={handleChange} 
+              required 
+              className={inputStyle}
+            />
+          </div>
+
+          {/* Register Button */}
+          <button 
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-500/30 transition-all active:scale-95 mt-6"
+            type="submit"
+          >
+            Register Account
+          </button>
+
+          {/* Back Button */}
+          <button 
+            type="button" 
+            onClick={() => navigate("/")}
+            className="w-full text-slate-400 hover:text-white text-sm py-2 transition-colors"
+          >
+            &larr; Return to Login
+          </button>
+
         </form>
 
-        <div className="auth-footer">
-          Registration subject to departmental approval
+        {/* Footer Warning */}
+        <div className="mt-8 pt-6 border-t border-slate-700 text-center">
+          <p className="text-xs text-slate-500 flex items-center justify-center gap-2">
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            Restricted access. Registration subject to approval.
+          </p>
         </div>
+
       </div>
     </div>
   );

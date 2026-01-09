@@ -88,36 +88,6 @@
 .secondary-btn:hover{
   background:#eef3ff;
 }
-/* ==== DARK BACKDROP ==== */
-.modal{
-  position: fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background: rgba(0,0,0,.25);
-  display:flex;
-  justify-content:flex-end;   /* drawer sticks RIGHT */
-  z-index:9999;
-}
-
-
-/* ==== SLIDE-IN RIGHT PANEL ==== */
-.modal-box{
-  width:420px;
-  height:100%;
-  background:white;
-  border-left:3px solid #0b3d91;
-  box-shadow:-8px 0 25px rgba(0,0,0,.25);
-  padding:22px;
-  animation: slideIn .25s ease-out;
-}
-
-@keyframes slideIn{
-  from{ transform:translateX(60px); opacity:.4 }
-  to{ transform:translateX(0); opacity:1 }
-}
-
 
 /* HEADER */
 .modal-box h3{
@@ -198,4 +168,33 @@
 
 .danger-btn:hover{
   background:#8d0000;
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1000;
+}
+
+.modal-box {
+  width: 420px;
+  height: 100%;
+  background: white;
+  padding: 24px;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .modal-box {
+    width: 100%;
+  }
 }
