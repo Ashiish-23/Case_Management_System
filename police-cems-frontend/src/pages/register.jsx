@@ -40,13 +40,10 @@ export default function Register() {
 
   return (
     // Main Container (Full Screen, Dark Background)
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-blue-900 flex items-center justify-center p-4">
       
       {/* Auth Card (Glass Effect) */}
       <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8 relative overflow-hidden">
-        
-        {/* Decorative Top Accent */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-cyan-500"></div>
 
         {/* Header Section */}
         <div className="text-center mb-8">
@@ -137,7 +134,7 @@ export default function Register() {
           {/* Back Button */}
           <button 
             type="button" 
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/login")}
             className="w-full text-slate-400 hover:text-white text-sm py-2 transition-colors"
           >
             &larr; Return to Login

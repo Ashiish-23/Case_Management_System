@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
 import MarqueeStats from "../components/MarqueeStats";
 import CaseTable from "./CaseList";
-
-// You can delete this line now since we are using Tailwind classes directly
-// import "../styles/Layout.css"; 
 
 export default function Dashboard() {
 
@@ -19,56 +16,44 @@ export default function Dashboard() {
   useEffect(() => {
 
     const token = localStorage.getItem("token");
-    if (!token) return navigate("/login");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
 
-    // --- Load Dashboard Stats ---
+    /* ---------- DASHBOARD STATS ---------- */
     fetch("http://localhost:5000/api/dashboard/stats", {
       headers: { Authorization: "Bearer " + token }
     })
-      .then(async res => {
-        if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            alert("Session expired. Please log in again.");
-            localStorage.clear();
-            navigate("/login");
-            return null;
-          }
-          const text = await res.text();
-          console.error("Stats API Error:", text);
+      .then(res => {
+        if (res.status === 401 || res.status === 403) {
+          alert("Session expired. Please log in again.");
+          localStorage.clear();
+          navigate("/login");
           return null;
         }
         return res.json();
       })
       .then(data => {
         if (!data) return;
+
         setStats([
           { label: "Total Cases", value: data.totalCases },
-          { label: "Evidence Items", value: data.evidenceItems },
-          { label: "Transfers", value: data.transfers },
           { label: "Open Cases", value: data.openCases },
           { label: "Re-opened Cases", value: data.reopenedCases },
           { label: "Closed Cases", value: data.closedCases },
+          { label: "Evidence Items", value: data.evidenceItems },
+          { label: "Transfers", value: data.transfers },
           { label: "Chain Violations", value: data.chainViolations }
         ]);
       })
       .catch(console.error);
 
-    // --- Load Case List ---
+    /* ---------- CASE LIST ---------- */
     fetch("http://localhost:5000/api/cases", {
       headers: { Authorization: "Bearer " + token }
     })
-      .then(async res => {
-        if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            console.warn("Unauthorized fetching cases");
-            return null;
-          }
-          const text = await res.text();
-          console.error("Cases API Error:", text);
-          return null;
-        }
-        return res.json();
-      })
+      .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) setCases(data);
         setLoading(false);
@@ -81,52 +66,42 @@ export default function Dashboard() {
   }, [navigate]);
 
   return (
-    // Main Container: Dark theme, full height, flex layout
-    <div className="flex min-h-screen bg-slate-900 text-slate-100 font-sans antialiased">
+    <div className="min-h-screen bg-blue-900 text-slate-100">
 
-      {/* Sidebar Container: Fixed width on the left */}
-      <div className="w-64 flex-shrink-0 border-r border-slate-700/50 bg-slate-800">
-        <Sidebar />
-      </div>
+      {/* GLOBAL TOPBAR */}
+      <Topbar />
 
-      {/* Main Content Area: Grows to fill space */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        
-        {/* Header Section */}
-        <header className="px-8 py-6 border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-10">
-          <h2 className="text-3xl font-bold text-white tracking-tight">
+      {/* PAGE CONTENT */}
+      <main className="pt-6 px-4 md:px-8 max-w-screen-2xl mx-auto">
+
+        {/* PAGE HEADER */}
+        <div className="mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">
             Officer Dashboard
           </h2>
-          <p className="text-slate-400 mt-1 text-sm">
-            Overview of active investigations and secure evidence chain.
+          <p className="text-slate-400 text-sm mt-1">
+            Overview of active investigations and secure evidence chain
           </p>
-        </header>
+        </div>
 
-        {/* Scrollable Main Body */}
-        <main className="flex-1 overflow-y-auto p-8">
-          
-          {/* Marquee Section */}
-          <div className="mb-8 bg-slate-800/50 border border-slate-700 rounded-xl shadow-lg backdrop-blur-sm overflow-hidden">
-            <MarqueeStats stats={stats} />
+        {/* MARQUEE */}
+        <div className="mb-8 bg-blue-700/50 border border-slate-700 rounded-xl overflow-hidden">
+          <MarqueeStats stats={stats} />
+        </div>
+
+        {/* CASE TABLE */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-400">Loading secure case files…</p>
           </div>
+        ) : (
+          <div className="bg-blue-700 border border-slate-700 rounded-xl shadow-xl overflow-hidden">
+            <CaseTable cases={cases} />
+          </div>
+        )}
 
-          {/* Loading State or Case Table */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              {/* Tailwind Spinner */}
-              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-slate-400 animate-pulse">Loading secure case files...</p>
-            </div>
-          ) : (
-            // The Table Container
-            <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
-              <CaseTable cases={cases} />
-            </div>
-          )}
-
-        </main>
-      </div>
-
+      </main>
     </div>
   );
 }

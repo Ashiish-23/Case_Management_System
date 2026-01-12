@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-// import "../styles/CaseTable.css"; // Deleted
 
 export default function CaseTable({ cases: initialCases = [] }) {
 
@@ -83,7 +82,7 @@ export default function CaseTable({ cases: initialCases = [] }) {
               cases.map(c => (
                 <tr
                   key={c.id}
-                  onClick={() => navigate(`/case/${c.id}`)}
+                  onDoubleClick={() => navigate(`/case/${c.id}`)}
                   className="hover:bg-slate-700/30 transition-colors cursor-pointer group"
                 >
                   

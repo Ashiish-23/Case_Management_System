@@ -4,9 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AddEvidenceModal from "../components/AddEvidenceModal";
 import EvidenceActionModal from "../components/EvidenceActionModal";
 import CaseStatusModal from "../components/CaseStatusModal"; 
-import Sidebar from "../components/Sidebar";
-
-// import "../styles/CaseDetail.css"; // Deleted
+import Topbar from "../components/Topbar";
 
 export default function CaseDetail() {
 
@@ -114,10 +112,10 @@ export default function CaseDetail() {
           </div>
 
           {/* EVIDENCE SECTION */}
-          <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+          <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
             
             {/* Section Header */}
-            <div className="px-6 py-5 border-b border-slate-700/50 bg-slate-900/30 flex justify-between items-center">
+            <div className="px-6 py-5 border-b border-slate-700/50 bg-blue-900/30 flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">📦</span>
                 <h3 className="text-lg font-bold text-white">Chain of Custody Log</h3>
@@ -128,7 +126,7 @@ export default function CaseDetail() {
 
               <button
                 className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-5 rounded-lg shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5"
-                onClick={() => setShowAddModal(true)}
+                onDoubleClick={() => setShowAddModal(true)}
               >
                 + Add Evidence
               </button>

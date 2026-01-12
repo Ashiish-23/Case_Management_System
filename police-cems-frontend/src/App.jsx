@@ -8,6 +8,7 @@ import ResetPassword from "./pages/resetpassword";
 import Dashboard from "./pages/dashboard";
 import CreateCase from "./pages/CreateCases";
 import CaseDetail from "./pages/CaseDetail";
+import Topbar from "./components/Topbar";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/cases/create" element={<CreateCase />} />
         <Route path="/case/:id" element={<CaseDetail />} />
+        <Route path="/topbar" element={<Topbar />} />
       </Routes>
     </BrowserRouter>
   );
