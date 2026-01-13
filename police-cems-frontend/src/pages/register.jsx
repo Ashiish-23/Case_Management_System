@@ -51,7 +51,7 @@ export default function Register() {
              <span className="text-3xl">👮</span>
           </div>
           <h2 className="text-3xl font-bold text-white tracking-tight">Officer Registration</h2>
-          <p className="text-slate-400 text-sm mt-2">Create an official police account</p>
+          <p className="text-white text-sm mt-2">Create an official police account</p>
         </div>
 
         {/* Form Section */}
@@ -90,7 +90,7 @@ export default function Register() {
               required 
               className={`${inputStyle} appearance-none cursor-pointer`}
             >
-              <option value="" className="bg-slate-900 text-slate-400">Select Rank / Role</option>
+              <option value="" className="bg-slate-900 text-white">Select Rank / Role</option>
               <option className="bg-slate-800">Constable</option>
               <option className="bg-slate-800">Head Constable</option>
               <option className="bg-slate-800">Sub-Inspector</option>
@@ -99,7 +99,7 @@ export default function Register() {
               <option className="bg-slate-800">SP</option>
             </select>
             {/* Custom Arrow Icon for Select */}
-            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
+            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-white">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
@@ -135,7 +135,7 @@ export default function Register() {
           <button 
             type="button" 
             onClick={() => navigate("/login")}
-            className="w-full text-slate-400 hover:text-white text-sm py-2 transition-colors"
+            className="w-full text-white hover:text-white text-sm py-2 transition-colors"
           >
             &larr; Return to Login
           </button>
@@ -144,7 +144,7 @@ export default function Register() {
 
         {/* Footer Warning */}
         <div className="mt-8 pt-6 border-t border-slate-700 text-center">
-          <p className="text-xs text-slate-500 flex items-center justify-center gap-2">
+          <p className="text-xs text-white flex items-center justify-center gap-2">
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
             Restricted access. Registration subject to approval.
           </p>

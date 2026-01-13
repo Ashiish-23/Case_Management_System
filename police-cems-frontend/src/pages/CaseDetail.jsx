@@ -47,12 +47,12 @@ export default function CaseDetail() {
       case 'open': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       case 'closed': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
       case 'reopened': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+      default: return 'bg-slate-500/10 text-white border-slate-500/20';
     }
   };
 
   if (!caseData) return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-400">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
       <div className="animate-pulse flex flex-col items-center">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
         Loading secure case file...
@@ -62,15 +62,12 @@ export default function CaseDetail() {
 
   return (
     // Main Layout Container
-    <div className="flex min-h-screen bg-slate-900 text-slate-100 font-sans antialiased">
-
-      {/* Sidebar Wrapper */}
-      <div className="w-64 flex-shrink-0 border-r border-slate-700/50 bg-slate-800">
-        <Sidebar />
-      </div>
+    <div className="flex min-h-screen bg-blue-900 text-slate-100 font-sans antialiased">
 
       {/* Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        <Topbar />
         
         {/* Scrollable Main Section */}
         <main className="flex-1 overflow-y-auto p-8">
@@ -78,7 +75,7 @@ export default function CaseDetail() {
           {/* HEADER SECTION */}
           <div className="mb-8">
             <button 
-              className="flex items-center text-slate-400 hover:text-white mb-6 transition-colors group"
+              className="flex items-center text-white hover:text-white mb-6 transition-colors group"
               onClick={() => navigate("/dashboard")}
             >
               <span className="mr-2 group-hover:-translate-x-1 transition-transform">⬅</span> 
@@ -91,18 +88,18 @@ export default function CaseDetail() {
                 <h2 className="text-4xl font-bold text-white tracking-tight mb-2 font-mono">
                   {caseData.case_number}
                 </h2>
-                <p className="text-xl text-slate-400 font-medium">
+                <p className="text-xl text-white font-medium">
                   {caseData.case_title}
                 </p>
               </div>
 
               {/* Status Button (Double Click to Change) */}
               <div className="text-right">
-                <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-semibold">Case Status</p>
+                <p className="text-xs text-white uppercase tracking-wider mb-2 font-semibold">Case Status</p>
                 <button
                   type="button"
                   className={`px-4 py-2 rounded-lg border font-bold uppercase tracking-wide transition-all hover:scale-105 active:scale-95 shadow-lg ${getStatusStyle(caseData.status)}`}
-                  onDoubleClick={() => setShowStatusModal(true)}
+                  onClick={() => setShowStatusModal(true)}
                   title="Double click to update status"
                 >
                   {caseData.status}
@@ -119,14 +116,11 @@ export default function CaseDetail() {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">📦</span>
                 <h3 className="text-lg font-bold text-white">Chain of Custody Log</h3>
-                <span className="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded-full">
-                  {evidence.length} Items
-                </span>
               </div>
 
               <button
                 className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-5 rounded-lg shadow-lg shadow-blue-500/20 transition-all hover:-translate-y-0.5"
-                onDoubleClick={() => setShowAddModal(true)}
+                onClick={() => setShowAddModal(true)}
               >
                 + Add Evidence
               </button>
@@ -136,7 +130,7 @@ export default function CaseDetail() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 
-                <thead className="bg-slate-900/50 text-slate-400 uppercase text-xs tracking-wider font-semibold">
+                <thead className="bg-slate-900/50 text-white uppercase text-xs tracking-wider font-semibold">
                   <tr>
                     <th className="px-6 py-4 border-b border-slate-700">Evidence ID</th>
                     <th className="px-6 py-4 border-b border-slate-700">Description</th>
@@ -151,32 +145,32 @@ export default function CaseDetail() {
                     evidence.map(e => (
                       <tr
                         key={e.id}
-                        onDoubleClick={() => setSelectedEvidence(e)}
+                        onClick={() => setSelectedEvidence(e)}
                         className="hover:bg-slate-700/30 transition-colors cursor-pointer group"
                         title="Double click to manage evidence"
                       >
                         <td className="px-6 py-4 font-mono text-blue-400 font-medium group-hover:text-blue-300">
                           {e.evidence_code}
                         </td>
-                        <td className="px-6 py-4 text-slate-300">
+                        <td className="px-6 py-4 text-white">
                           {e.description}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="bg-slate-700/40 border border-slate-600/50 px-2 py-1 rounded text-xs text-slate-300">
+                          <span className="bg-slate-700/40 border border-slate-600/50 px-2 py-1 rounded text-xs text-white">
                             {e.category ?? "-"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-400">
+                        <td className="px-6 py-4 text-white">
                           {e.officer_name ?? "Unknown"}
                         </td>
-                        <td className="px-6 py-4 text-slate-500 text-right font-mono">
+                        <td className="px-6 py-4 text-white text-right font-mono">
                           {new Date(e.logged_at).toLocaleDateString("en-GB")}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="px-6 py-12 text-center text-slate-500 italic">
+                      <td colSpan="5" className="px-6 py-12 text-center text-white italic">
                         No evidence logged for this case yet.
                       </td>
                     </tr>

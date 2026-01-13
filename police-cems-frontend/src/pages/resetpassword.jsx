@@ -56,14 +56,14 @@ export default function ResetPassword() {
              <span className="text-3xl">🔑</span>
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Reset Password</h2>
-          <p className="text-slate-400 text-sm mt-2">Create a new secure password</p>
+          <p className="text-white text-sm mt-2">Create a new secure password</p>
         </div>
 
         {/* Form Section */}
         <form className="space-y-6" onSubmit={submit}>
           
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">New Password</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase tracking-wider">New Password</label>
             <input
               type="password"
               placeholder="Enter new password"
@@ -74,7 +74,7 @@ export default function ResetPassword() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Confirm Password</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase tracking-wider">Confirm Password</label>
             <input
               type="password"
               placeholder="Re-enter new password"

@@ -43,7 +43,7 @@ export default function CaseTable({ cases: initialCases = [] }) {
       case 'open': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       case 'closed': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
       case 'reopened': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+      default: return 'bg-slate-500/10 text-white border-slate-500/20';
     }
   };
 
@@ -56,7 +56,7 @@ export default function CaseTable({ cases: initialCases = [] }) {
         <h3 className="text-lg font-semibold text-white tracking-wide">
           Registered Cases
         </h3>
-        <span className="text-xs text-slate-500 uppercase tracking-wider font-medium">
+        <span className="text-xs text-white uppercase tracking-wider font-medium">
           Total: {cases.length} Records
         </span>
       </div>
@@ -66,7 +66,7 @@ export default function CaseTable({ cases: initialCases = [] }) {
         <table className="w-full text-left border-collapse">
           
           {/* Table Head */}
-          <thead className="bg-slate-900/50 text-slate-400 uppercase text-xs tracking-wider font-semibold">
+          <thead className="bg-slate-900/70 text-white uppercase text-xs tracking-wider font-semibold">
             <tr>
               <th className="px-6 py-4 border-b border-slate-700">Case Number</th>
               <th className="px-6 py-4 border-b border-slate-700">Title</th>
@@ -82,12 +82,12 @@ export default function CaseTable({ cases: initialCases = [] }) {
               cases.map(c => (
                 <tr
                   key={c.id}
-                  onDoubleClick={() => navigate(`/case/${c.id}`)}
+                  onClick={() => navigate(`/case/${c.id}`)}
                   className="hover:bg-slate-700/30 transition-colors cursor-pointer group"
                 >
                   
                   {/* Case Number (Monospace font for ID feel) */}
-                  <td className="px-6 py-4 font-mono text-blue-400 group-hover:text-blue-300 transition-colors">
+                  <td className="px-6 py-4 font-mono text-white group-hover:text-blue-300 transition-colors">
                     {c.case_number}
                   </td>
                   
@@ -97,8 +97,8 @@ export default function CaseTable({ cases: initialCases = [] }) {
                   </td>
                   
                   {/* Category (Subtle text) */}
-                  <td className="px-6 py-4 text-slate-400">
-                    <span className="bg-slate-700/50 px-2 py-1 rounded text-xs">
+                  <td className="px-6 py-4 text-white">
+                    <span className="bg-blue-900/30 px-2 py-1 rounded text-xs">
                       {c.case_type}
                     </span>
                   </td>
@@ -111,7 +111,7 @@ export default function CaseTable({ cases: initialCases = [] }) {
                   </td>
                 
                   {/* Date (Right aligned, muted) */}
-                  <td className="px-6 py-4 text-slate-500 text-right">
+                  <td className="px-6 py-4 text-white text-right">
                     {new Date(c.registered_date).toLocaleDateString("en-GB", {
                       day: '2-digit', month: 'short', year: 'numeric'
                     })}
@@ -121,7 +121,7 @@ export default function CaseTable({ cases: initialCases = [] }) {
             ) : (
               // Empty State
               <tr>
-                <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                <td colSpan="5" className="px-6 py-12 text-center text-white">
                   No cases found in the database.
                 </td>
               </tr>

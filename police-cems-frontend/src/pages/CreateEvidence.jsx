@@ -43,7 +43,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
           <h3 className="text-lg font-bold text-white">Add New Evidence</h3>
           <button 
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors"
+            className="text-white hover:text-white transition-colors"
           >
             ✕
           </button>
@@ -54,7 +54,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
           {/* Description Field */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase">Description</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase">Description</label>
             <textarea 
               value={description} 
               onChange={e => setDescription(e.target.value)} 
@@ -66,7 +66,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
           {/* Category Field */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase">Category</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase">Category</label>
             <input 
               value={category} 
               onChange={e => setCategory(e.target.value)} 
@@ -78,11 +78,11 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
           {/* File Upload Field (Styled specifically for Tailwind) */}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase">Evidence Photo</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase">Evidence Photo</label>
             <input 
               type="file" 
               onChange={e => setImage(e.target.files[0])} 
-              className="block w-full text-sm text-slate-400
+              className="block w-full text-sm text-white
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-full file:border-0
                 file:text-xs file:font-semibold
@@ -98,7 +98,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
             <button 
               type="button" 
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium"
+              className="px-4 py-2 rounded-lg text-white hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium"
             >
               Cancel
             </button>

@@ -47,14 +47,14 @@ export default function ForgotPassword() {
              <span className="text-3xl">🔐</span>
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Account Recovery</h2>
-          <p className="text-slate-400 text-sm mt-2">Reset access securely</p>
+          <p className="text-white text-sm mt-2">Reset access securely</p>
         </div>
 
         {/* Form Section */}
         <form className="space-y-6" onSubmit={submit}>
           
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">
+            <label className="block text-xs font-medium text-white mb-1 uppercase tracking-wider">
               Registered Email
             </label>
             <input 
@@ -76,7 +76,7 @@ export default function ForgotPassword() {
           <button 
             type="button" 
             onClick={() => navigate("/login")}
-            className="w-full text-slate-400 hover:text-white text-sm py-2 transition-colors flex items-center justify-center gap-2"
+            className="w-full text-white hover:text-white text-sm py-2 transition-colors flex items-center justify-center gap-2"
           >
             &larr; Return to Login
           </button>
@@ -85,7 +85,7 @@ export default function ForgotPassword() {
 
         {/* Footer Warning */}
         <div className="mt-8 pt-6 border-t border-slate-700 text-center">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-white">
             A secure reset link will be sent to your official email.
           </p>
         </div>

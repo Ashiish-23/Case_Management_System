@@ -52,8 +52,8 @@ export default function CaseStatusModal({ caseId, currentStatus, onClose }) {
   };
 
   // Helper styles
-  const inputStyle = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
-  const labelStyle = "block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider";
+  const inputStyle = "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
+  const labelStyle = "block text-xs font-medium text-white mb-1 uppercase tracking-wider";
 
   // Determine header color based on status
   const isClosing = currentStatus === "OPEN" || currentStatus === "REOPENED";
@@ -62,10 +62,10 @@ export default function CaseStatusModal({ caseId, currentStatus, onClose }) {
 
   return (
     // Overlay
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+    <div className="fixed inset-0 bg-blue-900/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
 
       {/* Modal Card */}
-      <div className={`bg-slate-800 border ${borderColor} rounded-xl shadow-2xl w-full max-w-lg overflow-hidden relative animate-[fadeIn_0.2s_ease-out]`}>
+      <div className={`bg-blue-800 border ${borderColor} rounded-xl shadow-2xl w-full max-w-lg overflow-hidden relative animate-[fadeIn_0.2s_ease-out]`}>
 
         {/* Header */}
         <div className="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
@@ -74,7 +74,7 @@ export default function CaseStatusModal({ caseId, currentStatus, onClose }) {
           </h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors"
+            className="text-white hover:text-white transition-colors"
           >
             ✕
           </button>
@@ -113,7 +113,7 @@ export default function CaseStatusModal({ caseId, currentStatus, onClose }) {
               <div className="pt-4 border-t border-slate-700 flex justify-end gap-3">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium"
+                  className="px-4 py-2 rounded-lg text-white hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium"
                 >
                   Cancel
                 </button>
@@ -132,7 +132,7 @@ export default function CaseStatusModal({ caseId, currentStatus, onClose }) {
           {/* ----- RE-OPEN UI ----- */}
           {currentStatus === "CLOSED" && (
             <>
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-200 text-sm flex items-center gap-2 mb-2">
+              <div className="p-3 bg-blue-500/10 border border-emerald-500/20 rounded-lg text-emerald-200 text-sm flex items-center gap-2 mb-2">
                 <span>🔓</span> This will reactivate evidence logging.
               </div>
 
@@ -149,7 +149,7 @@ export default function CaseStatusModal({ caseId, currentStatus, onClose }) {
               <div className="pt-4 border-t border-slate-700 flex justify-end gap-3">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium"
+                  className="px-4 py-2 rounded-lg text-white hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium"
                 >
                   Cancel
                 </button>

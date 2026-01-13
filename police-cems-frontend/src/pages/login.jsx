@@ -58,13 +58,13 @@ export default function Login() {
             <span className="text-3xl">🛡️</span>
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">System Login</h2>
-          <p className="text-slate-400 text-sm mt-2">Police Evidence Management</p>
+          <p className="text-white text-sm mt-2">Police Evidence Management</p>
         </div>
 
         <form className="space-y-5" onSubmit={submit}>
           
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Officer ID</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase tracking-wider">Officer ID</label>
             <input 
               name="loginId" 
               placeholder="Enter Badge Number" 
@@ -75,7 +75,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Secure Password</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase tracking-wider">Secure Password</label>
             <input 
               name="password" 
               type="password" 
@@ -98,7 +98,7 @@ export default function Login() {
              <button 
                type="button" 
                onClick={() => navigate("/register")}
-               className="text-sm text-slate-400 hover:text-white transition-colors"
+               className="text-sm text-white hover:text-white transition-colors"
              >
                Register New Account
              </button>

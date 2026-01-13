@@ -5,7 +5,7 @@ export default function EvidenceModal({ data, close }) {
   if (!data) return null;
 
   // Helper for consistent label styling
-  const labelStyle = "block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1";
+  const labelStyle = "block text-xs font-bold text-white uppercase tracking-wider mb-1";
   
   // Helper for consistent data value boxes
   const valueBoxStyle = "bg-zinc-950/50 border border-slate-700/50 rounded-lg p-3 text-slate-200 text-sm";
@@ -25,7 +25,7 @@ export default function EvidenceModal({ data, close }) {
           </div>
           <button 
             onClick={close} 
-            className="text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700"
+            className="text-white hover:text-white transition-colors p-1 rounded-md hover:bg-slate-700"
           >
             ✕
           </button>

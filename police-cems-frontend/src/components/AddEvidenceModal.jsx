@@ -29,22 +29,22 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
   };
 
   // Reusable styling for inputs
-  const inputStyle = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
-  const labelStyle = "block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider";
+  const inputStyle = "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
+  const labelStyle = "block text-xs font-medium text-white mb-1 uppercase tracking-wider";
 
   return (
     // Overlay: Fixed, dark blur
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       
       {/* Modal Card */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden relative animate-[fadeIn_0.2s_ease-out]">
+      <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden relative animate-[fadeIn_0.2s_ease-out]">
 
         {/* Header */}
         <div className="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
           <h2 className="text-lg font-bold text-white tracking-tight">Add New Evidence</h2>
           <button 
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors"
+            className="text-white hover:text-white transition-colors"
           >
             ✕
           </button>
@@ -80,7 +80,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
               type="file" 
               accept="image/*"
               onChange={e => setImage(e.target.files[0])} 
-              className="block w-full text-sm text-slate-400
+              className="block w-full text-sm text-white
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-full file:border-0
                 file:text-xs file:font-semibold
@@ -95,7 +95,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
           <div className="pt-4 border-t border-slate-700 flex justify-end gap-3">
             <button 
               type="button" 
-              className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium" 
+              className="px-4 py-2 rounded-lg text-white hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium" 
               onClick={onClose}
             >
               Cancel

@@ -66,10 +66,8 @@ export default function Topbar() {
               setShowActions(!showActions);
               setShowUser(false);
             }}
-            className="text-xl text-slate-300 hover:text-white"
-          >
-            ☰
-          </button>
+            className="text-xl text-white hover:text-white"
+          > ☰ </button>
 
           {/* USER */}
           <button
@@ -79,7 +77,9 @@ export default function Topbar() {
             }}
             className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold"
           >
-            {user.name[0]?.toUpperCase()}
+            <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center">
+            👮
+          </div>
           </button>
         </div>
       </header>
@@ -93,7 +93,7 @@ export default function Topbar() {
           />
 
           <div className="fixed top-16 right-6 z-50 w-64 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 space-y-3">
-            <p className="text-xs text-slate-400 uppercase tracking-widest">
+            <p className="text-xs text-white uppercase tracking-widest">
               Actions
             </p>
 
@@ -105,12 +105,10 @@ export default function Topbar() {
             </button>
 
             <button className="w-full text-left px-3 py-2 rounded opacity-50 cursor-not-allowed">
-              🔁 Transfers (Coming Soon)
-            </button>
+              🔁 Transfers </button>
 
             <button className="w-full text-left px-3 py-2 rounded opacity-50 cursor-not-allowed">
-              🔗 Blockchain (Planned)
-            </button>
+              🔗 Blockchain </button>
           </div>
         </>
       )}
@@ -126,7 +124,7 @@ export default function Topbar() {
           <div className="fixed top-16 right-6 z-50 w-64 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 space-y-3">
             <div>
               <p className="font-semibold">{user.name}</p>
-              <p className="text-xs text-slate-400">{user.role}</p>
+              <p className="text-xs text-white">{user.role}</p>
             </div>
 
             <button

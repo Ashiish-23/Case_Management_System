@@ -44,21 +44,20 @@ export default function CreateCase() {
   };
 
   // Shared Styles for Consistency
-  const labelStyle = "block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider";
+  const labelStyle = "block text-xs font-medium text-white mb-1 uppercase tracking-wider";
   const inputStyle = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
 
   return (
     // Main Background
-    <div className="min-h-screen bg-slate-900 py-10 px-4 flex justify-center items-start">
+    <div className="min-h-screen bg-blue-700 py-10 px-4 flex justify-center items-start">
       
       {/* Card Container */}
       <div className="max-w-4xl w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
         
         {/* Header Section */}
         <div className="bg-slate-900/50 px-8 py-6 border-b border-slate-700 text-center relative">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-cyan-500"></div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Case Registration Form</h1>
-          <p className="text-slate-400 text-sm mt-2">Please enter accurate case details as per departmental guidelines</p>
+          <p className="text-white text-sm mt-2">Please enter accurate case details as per departmental guidelines</p>
         </div>
 
         {/* Form Section */}
@@ -86,7 +85,7 @@ export default function CreateCase() {
                   required 
                   className={`${inputStyle} appearance-none cursor-pointer`}
                 >
-                  <option value="" className="text-slate-500">Select Case Type</option>
+                  <option value="" className="text-white">Select Case Type</option>
                   <option>Theft</option>
                   <option>Cyber Crime</option>
                   <option>Homicide</option>
@@ -94,7 +93,7 @@ export default function CreateCase() {
                   <option>Financial Fraud</option>
                 </select>
                 {/* Arrow Icon */}
-                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-white">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </div>
@@ -146,7 +145,7 @@ export default function CreateCase() {
             <button 
               type="button" 
               onClick={() => navigate("/dashboard")}
-              className="px-6 py-3 rounded-lg border border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors font-medium"
+              className="px-6 py-3 rounded-lg border border-slate-600 text-white hover:text-white hover:bg-slate-700 transition-colors font-medium"
             >
               Cancel
             </button>

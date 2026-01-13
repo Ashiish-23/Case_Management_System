@@ -12,22 +12,23 @@ router.get("/stats", auth, async (req, res) => {
         (SELECT COUNT(*) FROM cases WHERE status='REOPENED') AS reopened_cases,
         (SELECT COUNT(*) FROM cases WHERE status='CLOSED') AS closed_cases,
         (SELECT COUNT(*) FROM evidence) AS evidence_items,
-        (SELECT COUNT(*) FROM transfers) AS transfers,
-        COALESCE((SELECT COUNT(*) FROM chain_violations), 0) AS chain_violations
+        (SELECT COUNT(*) FROM transfers) AS transfers
     `);
 
+    const row = result.rows[0];
+
     res.json({
-      totalCases: Number(result.rows[0].total_cases),
-      openCases: Number(result.rows[0].open_cases),
-      reopenedCases: Number(result.rows[0].reopened_cases),
-      closedCases: Number(result.rows[0].closed_cases),
-      evidenceItems: Number(result.rows[0].evidence_items),
-      transfers: Number(result.rows[0].transfers),
-      chainViolations: Number(result.rows[0].chain_violations)
+      totalCases: Number(row.total_cases),
+      openCases: Number(row.open_cases),
+      reopenedCases: Number(row.reopened_cases),
+      closedCases: Number(row.closed_cases),
+      evidenceItems: Number(row.evidence_items),
+      transfers: Number(row.transfers),
+      chainViolations: 0   // <-- intentional placeholder
     });
 
   } catch (err) {
-    console.error("Dashboard error:", err);
+    console.error("Dashboard stats error:", err.message);
     res.status(500).json({ error: "Dashboard stats failed" });
   }
 });

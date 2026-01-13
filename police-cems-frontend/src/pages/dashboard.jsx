@@ -43,8 +43,7 @@ export default function Dashboard() {
           { label: "Re-opened Cases", value: data.reopenedCases },
           { label: "Closed Cases", value: data.closedCases },
           { label: "Evidence Items", value: data.evidenceItems },
-          { label: "Transfers", value: data.transfers },
-          { label: "Chain Violations", value: data.chainViolations }
+          { label: "Transfers", value: data.transfers }
         ]);
       })
       .catch(console.error);
@@ -79,7 +78,7 @@ export default function Dashboard() {
           <h2 className="text-2xl md:text-3xl font-bold text-white">
             Officer Dashboard
           </h2>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-white text-sm mt-1">
             Overview of active investigations and secure evidence chain
           </p>
         </div>
@@ -93,10 +92,10 @@ export default function Dashboard() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24">
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-slate-400">Loading secure case files…</p>
+            <p className="text-white">Loading secure case files…</p>
           </div>
         ) : (
-          <div className="bg-blue-700 border border-slate-700 rounded-xl shadow-xl overflow-hidden">
+          <div className="bg-blue-900/50 border border-slate-700 rounded-xl shadow-xl overflow-hidden">
             <CaseTable cases={cases} />
           </div>
         )}
