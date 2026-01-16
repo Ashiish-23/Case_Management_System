@@ -22,4 +22,6 @@ app.use("/api/dashboard", require("./routes/dashboard"));
 
 app.use("/api/evidence", require("./routes/evidence"));
 
+app.use("/api/transfers", require("./routes/transfers"));
+
 app.use("/uploads", express.static("uploads"));

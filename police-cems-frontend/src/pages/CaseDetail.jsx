@@ -197,6 +197,7 @@ export default function CaseDetail() {
       {selectedEvidence &&
         <EvidenceActionModal
           data={selectedEvidence}
+          caseId={id}
           close={() => setSelectedEvidence(null)}
         />
       }

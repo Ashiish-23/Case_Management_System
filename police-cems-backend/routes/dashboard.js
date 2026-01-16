@@ -12,7 +12,7 @@ router.get("/stats", auth, async (req, res) => {
         (SELECT COUNT(*) FROM cases WHERE status='REOPENED') AS reopened_cases,
         (SELECT COUNT(*) FROM cases WHERE status='CLOSED') AS closed_cases,
         (SELECT COUNT(*) FROM evidence) AS evidence_items,
-        (SELECT COUNT(*) FROM transfers) AS transfers
+        (SELECT COUNT(*) FROM evidence_transfers) AS transfers
     `);
 
     const row = result.rows[0];
@@ -23,7 +23,7 @@ router.get("/stats", auth, async (req, res) => {
       reopenedCases: Number(row.reopened_cases),
       closedCases: Number(row.closed_cases),
       evidenceItems: Number(row.evidence_items),
-      transfers: Number(row.transfers),
+      transfers: Number(row.transfers) || 0,
       chainViolations: 0   // <-- intentional placeholder
     });
 
