@@ -104,8 +104,9 @@ export default function Topbar() {
               ➕ Create Case
             </button>
 
-            <button className="w-full text-left px-3 py-2 rounded opacity-50 cursor-not-allowed">
-              🔁 Transfers </button>
+            <button onClick={() => navigate("/transfers/pending")}>
+              🔁 Transfers
+            </button>
 
             <button className="w-full text-left px-3 py-2 rounded opacity-50 cursor-not-allowed">
               🔗 Blockchain </button>

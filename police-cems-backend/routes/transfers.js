@@ -5,6 +5,7 @@ const auth = require("../middleware/authMiddleware");
 
 /* =========================================================
    INITIATE TRANSFER
+   Officer → Officer / Storage / External
 ========================================================= */
 router.post("/initiate", auth, async (req, res) => {
   const client = await pool.connect();
@@ -13,7 +14,7 @@ router.post("/initiate", auth, async (req, res) => {
     const {
       evidenceId,
       caseId,
-      toUserId,
+      toOfficerId,        // 🔑 HUMAN INPUT (login ID)
       toStation,
       toExternalEntity,
       transferType,
@@ -26,7 +27,7 @@ router.post("/initiate", auth, async (req, res) => {
 
     await client.query("BEGIN");
 
-    /* 0️⃣ Block transfers for CLOSED / ARCHIVED cases */
+    /* 0️⃣ Block CLOSED / ARCHIVED cases */
     const caseStatus = await client.query(
       "SELECT status FROM cases WHERE id = $1",
       [caseId]
@@ -73,51 +74,100 @@ router.post("/initiate", auth, async (req, res) => {
       return res.status(409).json({ error: "Evidence already in transfer" });
     }
 
-    /* 3️⃣ Insert transfer event */
+    /* 3️⃣ Resolve destination officer (if needed) */
+    let toUserId = null;
+
+    if (transferType === "PERSON_TO_PERSON") {
+      if (!toOfficerId) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: "Receiving officer ID required" });
+      }
+
+      const officer = await client.query(
+        "SELECT id FROM users WHERE officer_id = $1",
+        [toOfficerId]
+      );
+
+      if (!officer.rows.length) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ error: "Receiving officer not found" });
+      }
+
+      toUserId = officer.rows[0].id; // 🔐 internal UUID
+    }
+
+    const isExternal = transferType === "EXTERNAL_OUT";
+
+    /* 4️⃣ Insert transfer event */
     const transfer = await client.query(
       `
       INSERT INTO evidence_transfers (
         evidence_id,
         case_id,
+
         from_user_id,
+        from_officer_id,
         from_station,
+
         to_user_id,
+        to_officer_id,
         to_station,
         to_external_entity,
+
         transfer_type,
         status,
         reason
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'PENDING',$9)
+      VALUES (
+        $1,$2,
+        $3,$4,$5,
+        $6,$7,$8,$9,
+        $10,$11,$12
+      )
       RETURNING id
       `,
       [
         evidenceId,
         caseId,
-        req.user.userId,
+
+        req.user.userId,           // UUID
+        req.user.officerId,        // LOGIN ID
         custody.rows[0].storage_station,
-        toUserId || null,
+
+        toUserId,
+        toOfficerId || null,
         toStation || null,
         toExternalEntity || null,
+
         transferType,
+        isExternal ? "COMPLETED_EXTERNAL" : "PENDING",
         reason
       ]
     );
 
-    /* 4️⃣ Update custody */
+    /* 5️⃣ Update custody */
     await client.query(
       `
       UPDATE evidence_custody
-      SET custody_status = 'IN_TRANSFER',
-          last_transfer_id = $1,
-          updated_at = NOW()
-      WHERE evidence_id = $2
+      SET
+        custody_status = $1,
+        last_transfer_id = $2,
+        updated_at = NOW()
+      WHERE evidence_id = $3
       `,
-      [transfer.rows[0].id, evidenceId]
+      [
+        isExternal ? "CHECKED_OUT_EXTERNAL" : "IN_TRANSFER",
+        transfer.rows[0].id,
+        evidenceId
+      ]
     );
 
     await client.query("COMMIT");
-    res.json({ success: true, transferId: transfer.rows[0].id });
+
+    res.json({
+      success: true,
+      transferId: transfer.rows[0].id
+    });
 
   } catch (err) {
     await client.query("ROLLBACK");
@@ -129,12 +179,10 @@ router.post("/initiate", auth, async (req, res) => {
 });
 
 /* =========================================================
-   GET MY PENDING TRANSFERS
+   GET MY PENDING TRANSFERS (INTERNAL)
 ========================================================= */
 router.get("/pending", auth, async (req, res) => {
   try {
-    const userId = req.user.userId;
-
     const result = await pool.query(
       `
       SELECT
@@ -149,7 +197,10 @@ router.get("/pending", auth, async (req, res) => {
 
         c.id AS case_id,
         c.case_number,
-        c.case_title
+        c.case_title,
+
+        t.from_officer_id,
+        t.from_station
 
       FROM evidence_transfers t
       JOIN evidence e ON e.id = t.evidence_id
@@ -160,7 +211,7 @@ router.get("/pending", auth, async (req, res) => {
 
       ORDER BY t.created_at DESC
       `,
-      [userId]
+      [req.user.userId]   // 🔐 UUID check
     );
 
     res.json(result.rows);
@@ -178,41 +229,51 @@ router.post("/:id/accept", auth, async (req, res) => {
   const client = await pool.connect();
 
   try {
-    const transferId = req.params.id;
-
     await client.query("BEGIN");
 
-    const transfer = await client.query(
-      `SELECT * FROM evidence_transfers
-       WHERE id = $1 AND status = 'PENDING'
-       FOR UPDATE`,
-      [transferId]
+    const transferResult = await client.query(
+      `
+      SELECT *
+      FROM evidence_transfers
+      WHERE id = $1
+        AND status = 'PENDING'
+      FOR UPDATE
+      `,
+      [req.params.id]
     );
 
-    if (!transfer.rows.length) {
-      throw new Error("Transfer not found");
+    if (!transferResult.rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Transfer not found" });
+    }
+
+    const transfer = transferResult.rows[0];
+
+    /* STRICT authorization */
+    if (transfer.to_user_id !== req.user.userId) {
+      await client.query("ROLLBACK");
+      return res.status(403).json({ error: "Unauthorized transfer" });
     }
 
     await client.query(
-      `UPDATE evidence_transfers
-       SET status = 'ACCEPTED'
-       WHERE id = $1`,
-      [transferId]
+      `UPDATE evidence_transfers SET status = 'ACCEPTED' WHERE id = $1`,
+      [req.params.id]
     );
 
     await client.query(
       `
       UPDATE evidence_custody
-      SET current_holder_id = $1,
-          storage_station = $2,
-          custody_status = 'ACTIVE',
-          updated_at = NOW()
+      SET
+        current_holder_id = $1,
+        storage_station = $2,
+        custody_status = 'ACTIVE',
+        updated_at = NOW()
       WHERE evidence_id = $3
       `,
       [
         req.user.userId,
-        transfer.rows[0].to_station,
-        transfer.rows[0].evidence_id
+        transfer.to_station,
+        transfer.evidence_id
       ]
     );
 
@@ -222,7 +283,7 @@ router.post("/:id/accept", auth, async (req, res) => {
   } catch (err) {
     await client.query("ROLLBACK");
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Accept transfer failed" });
   } finally {
     client.release();
   }
@@ -243,24 +304,37 @@ router.post("/:id/reject", auth, async (req, res) => {
 
     await client.query("BEGIN");
 
-    const transfer = await client.query(
-      `SELECT * FROM evidence_transfers
-       WHERE id = $1 AND status = 'PENDING'
-       FOR UPDATE`,
+    const transferResult = await client.query(
+      `
+      SELECT *
+      FROM evidence_transfers
+      WHERE id = $1
+        AND status = 'PENDING'
+      FOR UPDATE
+      `,
       [req.params.id]
     );
 
-    if (!transfer.rows.length) {
-      throw new Error("Transfer not found");
+    if (!transferResult.rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Transfer not found" });
+    }
+
+    const transfer = transferResult.rows[0];
+
+    if (transfer.to_user_id !== req.user.userId) {
+      await client.query("ROLLBACK");
+      return res.status(403).json({ error: "Unauthorized transfer" });
     }
 
     await client.query(
       `
       UPDATE evidence_transfers
-      SET status = 'REJECTED',
-          rejection_reason = $1,
-          rejected_by = $2,
-          rejected_at = NOW()
+      SET
+        status = 'REJECTED',
+        rejection_reason = $1,
+        rejected_by = $2,
+        rejected_at = NOW()
       WHERE id = $3
       `,
       [rejectionReason, req.user.userId, req.params.id]
@@ -273,17 +347,7 @@ router.post("/:id/reject", auth, async (req, res) => {
           updated_at = NOW()
       WHERE evidence_id = $1
       `,
-      [transfer.rows[0].evidence_id]
-    );
-
-    await client.query(
-      `
-      INSERT INTO audit_log
-      (entity_type, entity_id, action, severity, description, performed_by)
-      VALUES
-      ('EVIDENCE_TRANSFER', $1, 'REJECTED', 'HIGH', $2, $3)
-      `,
-      [req.params.id, rejectionReason, req.user.userId]
+      [transfer.evidence_id]
     );
 
     await client.query("COMMIT");
@@ -292,7 +356,7 @@ router.post("/:id/reject", auth, async (req, res) => {
   } catch (err) {
     await client.query("ROLLBACK");
     console.error(err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Reject transfer failed" });
   } finally {
     client.release();
   }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import TransferInitiateModal from "./TransferInitiateModal";
 
-export default function EvidenceActionModal({ data, caseId, close }) {
+export default function EvidenceActionModal({ data, caseId, close, caseStatus }) {
   const [showTransfer, setShowTransfer] = useState(false);
 
   // ❗ Do NOT hard-block rendering
@@ -33,11 +33,14 @@ export default function EvidenceActionModal({ data, caseId, close }) {
 
             <div className="space-y-3">
               <button
-                className="w-full bg-slate-800 border border-slate-700 py-3 rounded-lg text-white hover:bg-slate-700"
                 onClick={() => setShowTransfer(true)}
+                disabled={caseStatus === "CLOSED" || caseStatus === "ARCHIVED"}
+                className={`w-full py-3 rounded-lg border text-white ${
+                  caseStatus === "CLOSED" || caseStatus === "ARCHIVED" ? "bg-slate-700 opacity-50 cursor-not-allowed" : "bg-slate-800 hover:bg-slate-700"}`}
               >
                 🚚 Transfer Evidence
               </button>
+
 
               <button
                 disabled

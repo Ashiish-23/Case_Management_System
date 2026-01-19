@@ -2,125 +2,92 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function PendingTransfers() {
-  const navigate = useNavigate();
-
   const [transfers, setTransfers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
+  const loadTransfers = () => {
+    fetch("http://localhost:5000/api/transfers/pending", {
+      headers: { Authorization: "Bearer " + token }
+    })
+      .then(res => res.json())
+      .then(setTransfers)
+      .catch(console.error);
+  };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    loadTransfers();
+  }, []);
 
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+  const act = async (id, action) => {
+    const reason =
+      action === "reject"
+        ? prompt("Enter rejection reason")
+        : null;
 
-    fetch("http://localhost:5000/api/transfers/pending", {
+    if (action === "reject" && !reason) return;
+
+    await fetch(`http://localhost:5000/api/transfers/${id}/${action}`, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         Authorization: "Bearer " + token
-      }
-    })
-      .then(async res => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || "Failed to load transfers");
-        }
-        return res.json();
-      })
-      .then(data => {
-        setTransfers(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setError("Unable to load pending transfers");
-        setLoading(false);
-      });
-  }, [navigate]);
+      },
+      body: action === "reject"
+        ? JSON.stringify({ rejectionReason: reason })
+        : null
+    });
 
-  /* ---------------- LOADING ---------------- */
-  if (loading) {
-    return (
-      <div className="p-8 text-slate-400 animate-pulse">
-        Loading pending transfers…
-      </div>
-    );
-  }
-
-  /* ---------------- ERROR ---------------- */
-  if (error) {
-    return (
-      <div className="p-8 text-rose-400">
-        {error}
-      </div>
-    );
-  }
+    loadTransfers();
+  };
 
   return (
-    <div className="p-8 text-white">
+    <div className="p-8 text-white bg-blue-900 min-h-screen">
+      <h2 className="text-2xl font-bold mb-6">Pending Evidence Transfers</h2>
 
-      {/* HEADER */}
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold tracking-tight">
-          Pending Evidence Transfers
-        </h2>
-        <p className="text-slate-400 text-sm mt-1">
-          Evidence awaiting your acknowledgment or review
-        </p>
-      </div>
+      {transfers.length === 0 ? (
+        <p className="text-slate-400">No pending transfers.</p>
+      ) : (
+        <div className="space-y-4">
+          {transfers.map(t => (
+            <div
+              key={t.transfer_id}
+              className="bg-blue-800 border border-slate-700 rounded-lg p-4"
+            >
+              <div
+                className="font-mono text-white-400 cursor-pointer"
+                onClick={() => navigate(`/cases/${t.case_id}`)}
+              >
+                {t.evidence_code}
+              </div>
 
-      {/* EMPTY STATE */}
-      {transfers.length === 0 && (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 text-slate-400 italic">
-          No pending transfers at this time.
+              <div className="text-white-300 text-sm">
+                Case: {t.case_number} — {t.case_title}
+              </div>
+
+              <div className="text-white-400 text-sm">
+                From: {t.from_station}
+              </div>
+
+              <div className="mt-3 flex gap-3">
+                <button
+                  onClick={() => act(t.transfer_id, "accept")}
+                  className="bg-blue-600 hover:bg-emerald-500 px-4 py-2 rounded"
+                >
+                  Accept
+                </button>
+
+                <button
+                  onClick={() => act(t.transfer_id, "reject")}
+                  className="bg-rose-600 hover:bg-rose-500 px-4 py-2 rounded"
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
-
-      {/* LIST */}
-      <div className="space-y-4">
-        {transfers.map(t => (
-          <div
-            key={t.transfer_id}
-            onClick={() =>
-              navigate(`/cases/${t.case_id}`)
-            }
-            className="
-              bg-slate-800 border border-slate-700 rounded-xl p-5
-              cursor-pointer transition-all
-              hover:bg-slate-700/40 hover:border-slate-600
-            "
-          >
-            {/* Evidence */}
-            <div className="font-mono text-blue-400 text-lg mb-1">
-              {t.evidence_code}
-            </div>
-
-            {/* Case */}
-            <div className="text-slate-300 text-sm">
-              Case: <span className="font-semibold">{t.case_number}</span>
-            </div>
-
-            {/* Title */}
-            <div className="text-slate-400 text-sm">
-              {t.case_title}
-            </div>
-
-            {/* Meta */}
-            <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500">
-              <span>Transfer Type: {t.transfer_type}</span>
-              <span>
-                Initiated: {new Date(t.created_at).toLocaleString()}
-              </span>
-            </div>
-
-            {/* CTA */}
-            <div className="mt-4 text-sm text-blue-400">
-              View case → manage evidence
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
