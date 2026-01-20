@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 export default function TransferInitiateModal({ evidence, caseId, onClose }) {
   const [transferType, setTransferType] = useState("");
-  const [toUserId, setToUserId] = useState("");
+  const [toOfficerLoginId, setToOfficerLoginId] = useState("");
   const [toStation, setToStation] = useState("");
   const [toExternalEntity, setToExternalEntity] = useState("");
   const [reason, setReason] = useState("");
@@ -12,74 +12,85 @@ export default function TransferInitiateModal({ evidence, caseId, onClose }) {
 
   // Reset irrelevant fields when transfer type changes
   useEffect(() => {
-    setToUserId("");
+    setToOfficerLoginId("");
     setToStation("");
     setToExternalEntity("");
   }, [transferType]);
 
   const submitTransfer = async () => {
-  if (!transferType || !reason) {
-    alert("Transfer type and reason are required");
-    return;
-  }
+    if (!transferType || !reason.trim()) {
+      alert("Transfer type and reason are required");
+      return;
+    }
 
-  if (transferType === "EXTERNAL_OUT" && !toExternalEntity) {
-    alert("External entity is required");
-    return;
-  }
+    if (transferType === "PERSON_TO_PERSON" && !toOfficerLoginId.trim()) {
+      alert("Receiving officer login ID is required");
+      return;
+    }
 
-  if (transferType === "PERSON_TO_PERSON" && !toUserId) {
-    alert("Receiving officer is required");
-    return;
-  }
+    if (
+      (transferType === "PERSON_TO_STORAGE" ||
+        transferType === "STORAGE_TO_PERSON") &&
+      !toStation.trim()
+    ) {
+      alert("Station / storage location is required");
+      return;
+    }
 
-  if (
-    (transferType === "PERSON_TO_STORAGE" ||
-     transferType === "STORAGE_TO_PERSON") &&
-    !toStation
-  ) {
-    alert("Station / storage location is required");
-    return;
-  }
+    if (transferType === "EXTERNAL_OUT" && !toExternalEntity.trim()) {
+      alert("External entity is required");
+      return;
+    }
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const res = await fetch("http://localhost:5000/api/transfers/initiate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token
-      },
-      body: JSON.stringify({
-        evidenceId: evidence.id,
-        caseId,
-        transferType,
-        toUserId: transferType === "PERSON_TO_PERSON" ? toUserId : null,
-        toStation:
-          transferType === "PERSON_TO_STORAGE" ||
-          transferType === "STORAGE_TO_PERSON"
-            ? toStation
-            : null,
-        toExternalEntity:
-          transferType === "EXTERNAL_OUT" ? toExternalEntity : null,
-        reason
-      })
-    });
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/transfers/initiate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({
+            evidenceId: evidence.id,
+            caseId,
+            transferType,
+            toOfficerLoginId:
+              transferType === "PERSON_TO_PERSON"
+                ? toOfficerLoginId.trim()
+                : null,
+            toStation:
+              transferType === "PERSON_TO_STORAGE" ||
+              transferType === "STORAGE_TO_PERSON"
+                ? toStation.trim()
+                : null,
+            toExternalEntity:
+              transferType === "EXTERNAL_OUT"
+                ? toExternalEntity.trim()
+                : null,
+            reason: reason.trim()
+          })
+        }
+      );
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
+      const data = await res.json();
 
-    alert("Transfer initiated successfully");
-    onClose();
-    window.location.reload();
+      if (!res.ok) {
+        throw new Error(data.error || "Transfer failed");
+      }
 
-  } catch (err) {
-    alert(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      alert("Transfer initiated successfully");
+      onClose();
+      window.location.reload();
+
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4">
@@ -127,11 +138,11 @@ export default function TransferInitiateModal({ evidence, caseId, onClose }) {
           {transferType === "PERSON_TO_PERSON" && (
             <div>
               <label className="text-sm font-semibold text-slate-300">
-                Receiving Officer ID
+                Receiving Officer ID (Login ID)
               </label>
               <input
-                value={toUserId}
-                onChange={e => setToUserId(e.target.value)}
+                value={toOfficerLoginId}
+                onChange={e => setToOfficerLoginId(e.target.value)}
                 className="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"
               />
             </div>
