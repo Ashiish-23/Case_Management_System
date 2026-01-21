@@ -129,7 +129,7 @@ export default function PendingTransfers({ refreshKey, onActionComplete }) {
               </div>
             </div>
 
-            <div className="flex gap-2">
+            /*<div className="flex gap-2">
               <button
                 disabled={processingId === t.transfer_id}
                 onClick={() => acceptTransfer(t.transfer_id)}
@@ -145,7 +145,7 @@ export default function PendingTransfers({ refreshKey, onActionComplete }) {
               >
                 Reject
               </button>
-            </div>
+            </div>*
           </div>
         </div>
       ))}

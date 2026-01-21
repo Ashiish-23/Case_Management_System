@@ -157,7 +157,7 @@ router.post("/initiate", auth, async (req, res) => {
 
 /* =========================================================
    GET MY PENDING TRANSFERS
-========================================================= */
+========================================================= 
 router.get("/pending", auth, async (req, res) => {
   try {
     const result = await pool.query(
@@ -191,11 +191,11 @@ router.get("/pending", auth, async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Failed to load pending transfers" });
   }
-});
+}); */
 
 /* =========================================================
    ACCEPT TRANSFER
-========================================================= */
+========================================================= 
 router.post("/:id/accept", auth, async (req, res) => {
   const client = await pool.connect();
 
@@ -247,11 +247,11 @@ router.post("/:id/accept", auth, async (req, res) => {
   } finally {
     client.release();
   }
-});
+}); */
 
 /* =========================================================
    REJECT TRANSFER
-========================================================= */
+========================================================= 
 router.post("/:id/reject", auth, async (req, res) => {
   const client = await pool.connect();
 
@@ -313,7 +313,7 @@ router.post("/:id/reject", auth, async (req, res) => {
   } finally {
     client.release();
   }
-});
+}); */
 
 /* =========================================================
    TRANSFER HISTORY (READ-ONLY)
