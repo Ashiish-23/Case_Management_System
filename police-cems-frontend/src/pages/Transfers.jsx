@@ -1,50 +1,43 @@
-import { useState } from "react";
-import PendingTransfers from "../components/Transfers/PendingTransfers";
-import TransferHistory from "../components/Transfers/TransferHistory";
+import { useState } from 'react';
+import PendingTransfers from '../components/Transfers/PendingTransfers';
+import TransferHistory from '../components/Transfers/TransferHistory';
 
 export default function Transfers() {
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  /**
-   * Called after accept / reject
-   * Forces both pending + history to refresh
-   */
-  const handleTransferAction = () => {
-    setRefreshKey(prev => prev + 1);
-  };
+  const [activeTab, setActiveTab] = useState('pending');
 
   return (
-    <div className="min-h-screen bg-blue-900 text-white p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Evidence Transfers</h1>
 
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">Evidence Transfers</h1>
-        <p className="text-slate-300 text-sm mt-1">
-          Manage incoming transfers and view movement history
-        </p>
+        <div className="flex gap-4 mb-6 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('pending')}
+            className={`px-6 py-3 font-medium ${
+              activeTab === 'pending'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Pending Transfers
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-6 py-3 font-medium ${
+              activeTab === 'history'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Transfer History
+          </button>
+        </div>
+
+        <div className="bg-white rounded-lg shadow">
+          {activeTab === 'pending' && <PendingTransfers />}
+          {activeTab === 'history' && <TransferHistory />}
+        </div>
       </div>
-
-      {/* Pending Transfers */}
-      <section className="mb-10">
-        <h2 className="text-lg font-semibold mb-4">
-          Pending Transfers
-        </h2>
-
-        <PendingTransfers
-          refreshKey={refreshKey}
-          onActionComplete={handleTransferAction}
-        />
-      </section>
-
-      {/* Transfer History */}
-      <section>
-        <h2 className="text-lg font-semibold mb-4">
-          Transfer History
-        </h2>
-
-        <TransferHistory refreshKey={refreshKey} />
-      </section>
-
     </div>
   );
 }
