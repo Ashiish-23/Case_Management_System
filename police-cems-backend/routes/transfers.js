@@ -186,30 +186,31 @@ router.get("/pending", auth, async (req, res) => {
     const result = await pool.query(
       `
       SELECT
-        t.id AS transfer_id,
-        t.transfer_type,
-        t.reason,
-        t.created_at,
+      t.id AS transfer_id,
+      t.transfer_type,
+      t.reason,
+      t.created_at,
 
-        e.id AS evidence_id,
-        e.evidence_code,
-        e.description,
+      e.id AS evidence_id,
+      e.evidence_code,
+      e.description,
 
-        c.id AS case_id,
-        c.case_number,
-        c.case_title,
+      c.id AS case_id,
+      c.case_number,
+      c.case_title,
 
-        t.from_officer_id,
-        t.from_station
+      u.full_name AS from_officer_name,
+      t.from_station
 
       FROM evidence_transfers t
       JOIN evidence e ON e.id = t.evidence_id
       JOIN cases c ON c.id = t.case_id
+      JOIN users u ON u.id = t.from_user_id
 
       WHERE t.status = 'PENDING'
-        AND t.to_user_id = $1
+      AND t.to_user_id = $1
 
-      ORDER BY t.created_at DESC
+      ORDER BY t.created_at DESC;
       `,
       [req.user.userId]   // 🔐 UUID check
     );

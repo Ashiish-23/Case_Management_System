@@ -1,115 +1,150 @@
 import { useState } from "react";
-// import "../styles/modal.css"; // Deleted
 
 export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
-
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
+  const [seizedAtStation, setSeizedAtStation] = useState("");
   const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const submit = async e => {
+  const submit = async (e) => {
     e.preventDefault();
 
+    if (!description.trim() || !category.trim() || !seizedAtStation.trim()) {
+      alert("All fields are required");
+      return;
+    }
+
     const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Authentication required. Please login again.");
+      return;
+    }
 
     const form = new FormData();
     form.append("caseId", caseId);
-    form.append("description", description);
-    form.append("category", category);
+    form.append("description", description.trim());
+    form.append("category", category.trim());
+    form.append("seizedAtStation", seizedAtStation.trim());
     if (image) form.append("image", image);
 
-    await fetch("http://localhost:5000/api/evidence/add", {
-      method: "POST",
-      headers: { Authorization: "Bearer " + token },
-      body: form
-    });
+    setLoading(true);
 
-    onAdded();
-    onClose();
+    try {
+      const res = await fetch("http://localhost:5000/api/evidence/add", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token
+        },
+        body: form
+      });
+
+      let payload;
+      try {
+        payload = await res.json();
+      } catch {
+        throw new Error("Server error. Please check backend logs.");
+      }
+
+      if (!res.ok) {
+        throw new Error(payload.error || "Failed to add evidence");
+      }
+
+      // ✅ SUCCESS PATH ONLY
+      onAdded?.();
+      onClose();
+
+    } catch (err) {
+      console.error("Add evidence failed:", err);
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Reusable styling for inputs
-  const inputStyle = "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
-  const labelStyle = "block text-xs font-medium text-white mb-1 uppercase tracking-wider";
+  const inputStyle =
+    "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
+
+  const labelStyle =
+    "block text-xs font-medium text-white mb-1 uppercase tracking-wider";
 
   return (
-    // Overlay: Fixed, dark blur
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-      
-      {/* Modal Card */}
-      <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden relative animate-[fadeIn_0.2s_ease-out]">
+      <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
 
         {/* Header */}
         <div className="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-white tracking-tight">Add New Evidence</h2>
-          <button 
-            onClick={onClose}
-            className="text-white hover:text-white transition-colors"
-          >
-            ✕
-          </button>
+          <h2 className="text-lg font-bold text-white">Add New Evidence</h2>
+          <button onClick={onClose} className="text-white">✕</button>
         </div>
 
-        {/* Form Body */}
+        {/* Form */}
         <form onSubmit={submit} className="p-6 space-y-5">
 
           <div>
             <label className={labelStyle}>Description</label>
-            <textarea 
-              value={description} 
-              onChange={e => setDescription(e.target.value)} 
-              required
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
               className={`${inputStyle} h-24 resize-none`}
               placeholder="Detailed description of the item..."
+              required
             />
           </div>
 
           <div>
             <label className={labelStyle}>Category</label>
-            <input 
-              value={category} 
-              onChange={e => setCategory(e.target.value)} 
+            <input
+              value={category}
+              onChange={e => setCategory(e.target.value)}
               className={inputStyle}
-              placeholder="Example: Weapon / Narcotics / Digital Asset"
+              placeholder="Weapon / Theft / Digital Asset"
+              required
             />
           </div>
 
           <div>
-            <label className={labelStyle}>Upload Image</label>
-            <input 
-              type="file" 
-              accept="image/*"
-              onChange={e => setImage(e.target.files[0])} 
-              className="block w-full text-sm text-white
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-full file:border-0
-                file:text-xs file:font-semibold
-                file:bg-blue-600 file:text-white
-                file:cursor-pointer hover:file:bg-blue-500
-                cursor-pointer
-              "
+            <label className={labelStyle}>Station Name</label>
+            <input
+              value={seizedAtStation}
+              onChange={e => setSeizedAtStation(e.target.value)}
+              className={inputStyle}
+              placeholder="Police station name"
+              required
             />
           </div>
 
-          {/* Actions Footer */}
+          <div>
+            <label className={labelStyle}>Upload Image (optional)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setImage(e.target.files[0])}
+              className="text-white text-sm"
+            />
+          </div>
+
+          {/* Footer */}
           <div className="pt-4 border-t border-slate-700 flex justify-end gap-3">
-            <button 
-              type="button" 
-              className="px-4 py-2 rounded-lg text-white hover:text-white hover:bg-slate-700 transition-colors text-sm font-medium" 
+            <button
+              type="button"
               onClick={onClose}
+              className="text-white px-4 py-2"
+              disabled={loading}
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg shadow-blue-500/30 transition-all active:scale-95 text-sm"
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-blue-600 px-6 py-2 rounded-lg text-white disabled:opacity-50"
             >
-              Save Evidence
+              {loading ? "Saving..." : "Save Evidence"}
             </button>
           </div>
 
         </form>
-
       </div>
     </div>
   );
