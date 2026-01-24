@@ -91,15 +91,17 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
       `
       INSERT INTO evidence_custody (
         evidence_id,
+        case_id,
         current_holder_id,
-        storage_station,
+        current_station,
         custody_status,
         updated_at
       )
-      VALUES ($1,$2,$3,'ACTIVE',NOW())
+      VALUES ($1,$2,$3, $4, 'ACTIVE',NOW())
       `,
       [
         evidenceId,
+        caseId,
         officerId,
         seizedAtStation.trim()
       ]

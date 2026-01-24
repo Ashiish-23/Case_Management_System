@@ -22,6 +22,8 @@ app.use("/api/evidence", evidenceRoutes);
 
 app.use("/api/transfers", transfersRoutes);
 
+app.use("/api/custody", require("./routes/custody"));
+
 app.use("/uploads", express.static("uploads"));
 
 app.listen(5000, () => {

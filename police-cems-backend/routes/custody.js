@@ -1,13 +1,39 @@
-router.post("/transfer", auth, async(req,res)=>{
+const express = require("express");
+const router = express.Router();
+const pool = require("../db");
+const auth = require("../middleware/authMiddleware");
 
-  const { evidenceId, fromLocation, toLocation, reason } = req.body;
+/*
+  GET CURRENT CUSTODY BY EVIDENCE ID
+*/
+router.get("/:evidenceId", auth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        ec.evidence_id,
+        ec.current_station,
+        ec.current_holder_id,
+        ec.custody_status,
+        e.evidence_code,
+        e.description,
+        e.case_id
+      FROM evidence_custody ec
+      JOIN evidence e ON e.id = ec.evidence_id
+      WHERE ec.evidence_id = $1
+      `,
+      [req.params.evidenceId]
+    );
 
-  await pool.query(
-    `INSERT INTO custody_transfers
-     (evidence_id,from_location,to_location,transferred_by,transfer_reason)
-     VALUES ($1,$2,$3,$4,$5)`,
-    [evidenceId, fromLocation, toLocation, req.user.userId, reason]
-  );
+    if (!result.rows.length) {
+      return res.status(404).json({ error: "Custody record not found" });
+    }
 
-  res.json({ success:true });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch custody" });
+  }
 });
+
+module.exports = router;
