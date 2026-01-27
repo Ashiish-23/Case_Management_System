@@ -9,9 +9,8 @@ import Dashboard from "./pages/dashboard";
 import CreateCase from "./pages/CreateCases";
 import CaseDetail from "./pages/CaseDetail";
 import Topbar from "./components/Topbar";
-import PendingTransfers from "./pages/Transfers";
 import Transfers from "./pages/Transfers";
-import NewTransfers from "./pages/NewTransfers";
+import TransferModal from "./components/TransferModal";
 export default function App() {
   return (
     <BrowserRouter>
@@ -26,8 +25,7 @@ export default function App() {
         <Route path="/case/:id" element={<CaseDetail />} />
         <Route path="/topbar" element={<Topbar />} />
         <Route path="/transfers" element={<Transfers />} />
-        <Route path="/transfers/new/:evidenceId" element={<NewTransfers />} />
-        <Route path="/transfers/pending" element={<PendingTransfers />} />
+        <Route path="/transfers/new/:evidenceId" element={<TransferModal />} />
       </Routes>
     </BrowserRouter>
   );

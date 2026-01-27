@@ -136,6 +136,7 @@ export default function CaseDetail() {
                     <th className="px-6 py-4 border-b border-slate-700">Description</th>
                     <th className="px-6 py-4 border-b border-slate-700">Category</th>
                     <th className="px-6 py-4 border-b border-slate-700">Logged By</th>
+                    <th className="px-6 py-4 border-b border-slate-700">Current Station</th>
                     <th className="px-6 py-4 border-b border-slate-700 text-right">Date Logged</th>
                   </tr>
                 </thead>
@@ -162,6 +163,9 @@ export default function CaseDetail() {
                         </td>
                         <td className="px-6 py-4 text-white">
                           {e.officer_name ?? "Unknown"}
+                        </td>
+                        <td className="px-6 py-4 text-white"> 
+                          {e.current_station ?? "Unknown"} 
                         </td>
                         <td className="px-6 py-4 text-white text-right font-mono">
                           {new Date(e.logged_at).toLocaleDateString("en-GB")}

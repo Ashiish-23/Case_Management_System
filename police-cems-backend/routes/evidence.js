@@ -139,11 +139,12 @@ router.get("/case/:caseId", auth, async (req, res) => {
         e.evidence_code,
         e.description,
         e.category,
-        e.seized_at_station,
+        ec.current_station,
         e.logged_at,
         u.full_name AS officer_name
       FROM evidence e
       LEFT JOIN users u ON e.logged_by = u.id
+      LEFT JOIN evidence_custody ec ON e.id = ec.evidence_id
       WHERE e.case_id = $1
       ORDER BY e.logged_at DESC
       `,

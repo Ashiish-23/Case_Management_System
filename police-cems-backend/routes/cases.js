@@ -78,6 +78,7 @@ router.get("/", auth, async(req,res)=>{
         case_title,
         case_type,
         status,
+        station_name,
         registered_date
       FROM cases
       ORDER BY 

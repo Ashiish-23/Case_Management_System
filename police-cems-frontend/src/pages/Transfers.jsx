@@ -17,34 +17,32 @@ export default function Transfers() {
   }, []);
 
   return (
-    <div className="p-8 text-white">
-      <h1 className="text-2xl font-bold mb-6">Stock / Transfers</h1>
+    <div className="p-8 bg-blue-950 text-white min-h-screen">
+      <h1 className="text-2xl font-bold mb-6 text-white">Transfers</h1>
 
-      <table className="w-full bg-slate-900 rounded-xl overflow-hidden">
-        <thead className="bg-slate-800">
+      <table className="w-full bg-blue-900 rounded-xl overflow-hidden">
+        <thead className="bg-blue-800">
           <tr>
-            <th className="p-3 text-left">Evidence</th>
-            <th className="p-3">Current Station</th>
-            <th className="p-3">Status</th>
-            <th className="p-3">Action</th>
+            <th className="p-3 text-left text-white">Evidence</th>
+            <th className="p-3 text-white">Current Station</th>
+            <th className="p-3 text-white">Status</th>
+            <th className="p-3 text-white">Action</th>
           </tr>
         </thead>
         <tbody>
           {items.map(row => (
-            <tr key={row.evidence_id} className="border-t border-slate-700">
-              <td className="p-3">{row.evidence_code}</td>
-              <td className="p-3">{row.current_station}</td>
-              <td className="p-3">{row.custody_status}</td>
+            <tr key={row.evidence_id} className="border-t bg-blue-850 border-blue-700 hover:bg-blue-800">
+              <td className="p-3 text-blue-50">{row.evidence_code}</td>
+              <td className="p-3 text-blue-50">{row.current_station}</td>
+              <td className="p-3 text-blue-50">{row.custody_status}</td>
               <td className="p-3 flex gap-3">
                 <button
                   onClick={() => navigate(`/transfers/new/${row.evidence_id}`)}
-                  className="px-3 py-1 bg-blue-600 rounded"
-                >
-                  New Transfer
-                </button>
+                  className="px-3 py-1 bg-slate-500 hover:bg-blue-400 rounded text-white font-semibold"
+                >New Transfer</button>
                 <button
                   onClick={() => setSelectedEvidence(row.evidence_id)}
-                  className="px-3 py-1 bg-slate-600 rounded"
+                  className="px-3 py-1 bg-slate-500 hover:bg-blue-400 rounded text-white font-semibold"
                 >
                   History
                 </button>

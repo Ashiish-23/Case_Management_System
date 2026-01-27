@@ -4,8 +4,7 @@ const pool = require("../db");
 const auth = require("../middleware/authMiddleware");
 
 /* =========================================================
-   CREATE NEW TRANSFER
-   (Immediate transfer, no approval flow)
+   CREATE NEW TRANSFER (IMMEDIATE, TRUSTED)
 ========================================================= */
 router.post("/create", auth, async (req, res) => {
   const client = await pool.connect();
@@ -13,37 +12,31 @@ router.post("/create", auth, async (req, res) => {
   try {
     const {
       evidenceId,
-      caseId,
       toStation,
-      transferType, // TRANSFER | RETURN | EXTERNAL
-      remarks
+      toOfficerId,       // officer login / badge / code
+      toOfficerEmail,
+      reason
     } = req.body;
 
-    if (!evidenceId || !caseId || !toStation || !transferType) {
+    if (!evidenceId || !toStation || !toOfficerId || !toOfficerEmail || !reason) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
     await client.query("BEGIN");
 
-    /* 1️⃣ Validate case */
-    const caseRes = await client.query(
-      "SELECT status FROM cases WHERE id = $1",
-      [caseId]
+    /* 1️⃣ Verify evidence + get case_id */
+    const evRes = await client.query(
+      `SELECT id, case_id FROM evidence WHERE id = $1`,
+      [evidenceId]
     );
 
-    if (!caseRes.rows.length) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Case not found" });
+    if (!evRes.rows.length) {
+      throw new Error("Evidence not found");
     }
 
-    if (caseRes.rows[0].status !== "OPEN") {
-      await client.query("ROLLBACK");
-      return res.status(403).json({
-        error: "Transfers not allowed for closed cases"
-      });
-    }
+    const caseId = evRes.rows[0].case_id;
 
-    /* 2️⃣ Lock current custody */
+    /* 2️⃣ Lock custody (single source of truth) */
     const custodyRes = await client.query(
       `
       SELECT *
@@ -55,47 +48,76 @@ router.post("/create", auth, async (req, res) => {
     );
 
     if (!custodyRes.rows.length) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Custody record not found" });
+      throw new Error("Custody record not found");
     }
 
     const custody = custodyRes.rows[0];
 
-    /* 3️⃣ Insert transfer history */
+    /* 3️⃣ Resolve receiving officer (TRUST BOUNDARY) */
+    const officerRes = await client.query(
+      `
+      SELECT id, email
+      FROM users
+      WHERE officer_id = $1 AND email = $2
+      `,
+      [toOfficerId, toOfficerEmail]
+    );
+
+    if (!officerRes.rows.length) {
+      throw new Error("Receiving officer not found or email mismatch");
+    }
+
+    const toUserId = officerRes.rows[0].id;
+
+    /* 4️⃣ Insert immutable transfer record */
     await client.query(
       `
       INSERT INTO evidence_transfers (
         evidence_id,
         case_id,
-        transfer_type,
-        from_station,
-        to_station,
         from_user_id,
-        remarks
+        from_station,
+        to_user_id,
+        to_station,
+        transfer_type,
+        status,
+        reason
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      VALUES (
+        $1,$2,
+        $3,$4,
+        $5,$6,
+        'OFFICER_TO_OFFICER',
+        'COMPLETED',
+        $7
+      )
       `,
       [
         evidenceId,
         caseId,
-        transferType,
-        custody.current_station,
-        toStation.trim(),
         req.user.userId,
-        remarks || null
+        custody.current_station,
+        toUserId,
+        toStation.trim(),
+        reason.trim()
       ]
     );
 
-    /* 4️⃣ Update live custody */
+    /* 5️⃣ Update custody (AUTHORITATIVE STATE) */
     await client.query(
       `
       UPDATE evidence_custody
       SET
         current_station = $1,
+        current_holder_id = $2,
         updated_at = NOW()
-      WHERE evidence_id = $2
+      WHERE evidence_id = $3
       `,
-      [toStation.trim(), evidenceId]
+      [
+        toStation.trim(),
+        toUserId,
+        evidenceId
+      ]
     );
 
     await client.query("COMMIT");
@@ -104,15 +126,15 @@ router.post("/create", auth, async (req, res) => {
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("TRANSFER ERROR:", err);
-    res.status(500).json({ error: "Transfer failed" });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   } finally {
     client.release();
   }
 });
 
 /* =========================================================
-   GET TRANSFER HISTORY (Per Evidence)
+   TRANSFER HISTORY (READ-ONLY LEDGER)
 ========================================================= */
 router.get("/history/:evidenceId", auth, async (req, res) => {
   try {
@@ -120,11 +142,12 @@ router.get("/history/:evidenceId", auth, async (req, res) => {
       `
       SELECT
         t.id,
-        t.transfer_type,
         t.from_station,
         t.to_station,
-        t.remarks,
-        t.transfer_date,
+        t.transfer_type,
+        t.status,
+        t.reason,
+        t.created_at,
         u.full_name AS transferred_by
       FROM evidence_transfers t
       JOIN users u ON u.id = t.from_user_id
