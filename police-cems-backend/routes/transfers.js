@@ -13,18 +13,26 @@ router.post("/create", auth, async (req, res) => {
     const {
       evidenceId,
       toStation,
-      toOfficerId,       // officer login / badge / code
+      toOfficerId,
       toOfficerEmail,
-      reason
+      reason,
+      transferType = "INTERNAL" // INTERNAL | EXTERNAL_OUT
     } = req.body;
 
-    if (!evidenceId || !toStation || !toOfficerId || !toOfficerEmail || !reason) {
+    /* Basic validation */
+    if (!evidenceId || !toStation || !reason) {
       return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    if (transferType === "INTERNAL" && (!toOfficerId || !toOfficerEmail)) {
+      return res.status(400).json({
+        error: "Officer ID and Email required for internal transfer"
+      });
     }
 
     await client.query("BEGIN");
 
-    /* 1️⃣ Verify evidence + get case_id */
+    /* 1️⃣ Verify evidence */
     const evRes = await client.query(
       `SELECT id, case_id FROM evidence WHERE id = $1`,
       [evidenceId]
@@ -36,14 +44,9 @@ router.post("/create", auth, async (req, res) => {
 
     const caseId = evRes.rows[0].case_id;
 
-    /* 2️⃣ Lock custody (single source of truth) */
+    /* 2️⃣ Lock custody */
     const custodyRes = await client.query(
-      `
-      SELECT *
-      FROM evidence_custody
-      WHERE evidence_id = $1
-      FOR UPDATE
-      `,
+      `SELECT * FROM evidence_custody WHERE evidence_id = $1 FOR UPDATE`,
       [evidenceId]
     );
 
@@ -53,21 +56,21 @@ router.post("/create", auth, async (req, res) => {
 
     const custody = custodyRes.rows[0];
 
-    /* 3️⃣ Resolve receiving officer (TRUST BOUNDARY) */
-    const officerRes = await client.query(
-      `
-      SELECT id, email
-      FROM users
-      WHERE officer_id = $1 AND email = $2
-      `,
-      [toOfficerId, toOfficerEmail]
-    );
+    /* 3️⃣ Resolve officer ONLY for internal transfers */
+    let toUserId = null;
 
-    if (!officerRes.rows.length) {
-      throw new Error("Receiving officer not found or email mismatch");
+    if (transferType === "INTERNAL") {
+      const officerRes = await client.query(
+        `SELECT id FROM users WHERE login_id = $1 AND email = $2`,
+        [toOfficerId, toOfficerEmail]
+      );
+
+      if (!officerRes.rows.length) {
+        throw new Error("Receiving officer not found or email mismatch");
+      }
+
+      toUserId = officerRes.rows[0].id;
     }
-
-    const toUserId = officerRes.rows[0].id;
 
     /* 4️⃣ Insert immutable transfer record */
     await client.query(
@@ -77,33 +80,26 @@ router.post("/create", auth, async (req, res) => {
         case_id,
         from_user_id,
         from_station,
-        to_user_id,
         to_station,
         transfer_type,
-        status,
-        reason
+        remarks,
+        transfer_date,
+        created_at
       )
-      VALUES (
-        $1,$2,
-        $3,$4,
-        $5,$6,
-        'OFFICER_TO_OFFICER',
-        'COMPLETED',
-        $7
-      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,CURRENT_DATE,NOW())
       `,
       [
         evidenceId,
         caseId,
         req.user.userId,
         custody.current_station,
-        toUserId,
         toStation.trim(),
+        transferType,
         reason.trim()
       ]
     );
 
-    /* 5️⃣ Update custody (AUTHORITATIVE STATE) */
+    /* 5️⃣ Update custody (authoritative state) */
     await client.query(
       `
       UPDATE evidence_custody
@@ -115,7 +111,7 @@ router.post("/create", auth, async (req, res) => {
       `,
       [
         toStation.trim(),
-        toUserId,
+        transferType === "INTERNAL" ? toUserId : null,
         evidenceId
       ]
     );
@@ -145,8 +141,7 @@ router.get("/history/:evidenceId", auth, async (req, res) => {
         t.from_station,
         t.to_station,
         t.transfer_type,
-        t.status,
-        t.reason,
+        t.remarks,
         t.created_at,
         u.full_name AS transferred_by
       FROM evidence_transfers t

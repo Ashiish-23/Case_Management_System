@@ -11,6 +11,7 @@ import CaseDetail from "./pages/CaseDetail";
 import Topbar from "./components/Topbar";
 import Transfers from "./pages/Transfers";
 import TransferModal from "./components/TransferModal";
+import TransferHistory from "./pages/TransferHistory";
 export default function App() {
   return (
     <BrowserRouter>
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/topbar" element={<Topbar />} />
         <Route path="/transfers" element={<Transfers />} />
         <Route path="/transfers/new/:evidenceId" element={<TransferModal />} />
+        <Route path="/transfers/history/:evidenceId" element={<TransferHistory />} />
       </Routes>
     </BrowserRouter>
   );

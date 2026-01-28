@@ -104,7 +104,7 @@ export default function Topbar() {
               ➕ Create Case
             </button>
 
-            <button onClick={() => navigate("/transfers/pending")}>
+            <button onClick={() => navigate("/transfers/history")}>
               🔁 Transfers
             </button>
 

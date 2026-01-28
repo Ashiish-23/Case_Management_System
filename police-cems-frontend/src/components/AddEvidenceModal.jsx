@@ -120,7 +120,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
               type="file"
               accept="image/*"
               onChange={e => setImage(e.target.files[0])}
-              className="text-white text-sm"
+              className="text-white text-sm rounded-lg px-3 py-2"
             />
           </div>
 
@@ -129,7 +129,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
             <button
               type="button"
               onClick={onClose}
-              className="text-white px-4 py-2"
+              className="text-white px-4 py-2 hover:bg-slate-700 rounded-lg disabled:opacity-50"
               disabled={loading}
             >
               Cancel
@@ -138,7 +138,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 px-6 py-2 rounded-lg text-white disabled:opacity-50"
+              className="bg-blue-600 px-6 py-2 rounded-lg text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? "Saving..." : "Save Evidence"}
             </button>
