@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 export default function Topbar() {
@@ -7,6 +7,7 @@ export default function Topbar() {
 
   const [showActions, setShowActions] = useState(false);
   const [showUser, setShowUser] = useState(false);
+  const { evidenceId } = useParams();
 
   /* ============================
      GET USER FROM JWT
@@ -104,7 +105,7 @@ export default function Topbar() {
               ➕ Create Case
             </button>
 
-            <button onClick={() => navigate("/transfers/history")}>
+            <button onClick={() => navigate(`/transfers/history/${e.id}`)} className="w-full text-left px-3 py-2 rounded hover:bg-blue-600">
               🔁 Transfers
             </button>
 

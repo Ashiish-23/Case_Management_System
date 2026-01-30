@@ -79,6 +79,7 @@ router.post("/create", auth, async (req, res) => {
         evidence_id,
         case_id,
         from_user_id,
+        initiated_by,
         from_station,
         to_station,
         transfer_type,
@@ -86,11 +87,12 @@ router.post("/create", auth, async (req, res) => {
         transfer_date,
         created_at
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,CURRENT_DATE,NOW())
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,CURRENT_DATE,NOW())
       `,
       [
         evidenceId,
         caseId,
+        custody.current_holder_id,
         req.user.userId,
         custody.current_station,
         toStation.trim(),
@@ -143,9 +145,10 @@ router.get("/history/:evidenceId", auth, async (req, res) => {
         t.transfer_type,
         t.remarks,
         t.created_at,
-        u.full_name AS transferred_by
+        u.full_name AS initiated_by
       FROM evidence_transfers t
       JOIN users u ON u.id = t.from_user_id
+      JOIN users u ON u.id = t.initiated_by
       WHERE t.evidence_id = $1
       ORDER BY t.created_at DESC
       `,
