@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import Dashboard from "../pages/dashboard";
 
 export default function Topbar() {
   const navigate = useNavigate();
 
   const [showActions, setShowActions] = useState(false);
   const [showUser, setShowUser] = useState(false);
-  const { evidenceId } = useParams();
-
   /* ============================
      GET USER FROM JWT
   ============================ */
@@ -52,10 +51,10 @@ export default function Topbar() {
 
         {/* LEFT */}
         <div className="flex items-center gap-3 text-white font-bold">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+          <div onClick={() => navigate("/dashboard")} className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
             👮
           </div>
-          <span className="tracking-wide">POLICE CEMS</span>
+          <span onClick={() => navigate("/dashboard")} className="tracking-wide">POLICE CEMS</span>
         </div>
 
         {/* RIGHT */}
@@ -103,10 +102,6 @@ export default function Topbar() {
               className="w-full text-left px-3 py-2 rounded hover:bg-blue-600"
             >
               ➕ Create Case
-            </button>
-
-            <button onClick={() => navigate(`/transfers/history/${e.id}`)} className="w-full text-left px-3 py-2 rounded hover:bg-blue-600">
-              🔁 Transfers
             </button>
 
             <button className="w-full text-left px-3 py-2 rounded opacity-50 cursor-not-allowed">

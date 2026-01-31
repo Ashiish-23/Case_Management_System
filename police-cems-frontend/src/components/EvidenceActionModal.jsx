@@ -1,10 +1,17 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import TransferModal from "./TransferModal";
 
 export default function EvidenceActionModal({ data, close }) {
   const [showTransfer, setShowTransfer] = useState(false);
+  const navigate = useNavigate();
 
   if (!data) return null;
+
+  const openHistory = () => {
+    close(); // close action modal first
+    navigate(`/transfers/history/${data.id}`);
+  };
 
   return (
     <>
@@ -13,7 +20,7 @@ export default function EvidenceActionModal({ data, close }) {
         <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
 
           {/* Header */}
-          <div className="bg-blue-900/50 px-3 py-4 border-b border-slate-700 flex justify-between items-center">
+          <div className="bg-blue-900/50 px-4 py-4 border-b border-slate-700 flex justify-between items-center">
             <h3 className="text-lg font-bold text-white">Evidence Actions</h3>
             <button onClick={close} className="text-white text-lg">✕</button>
           </div>
@@ -37,6 +44,7 @@ export default function EvidenceActionModal({ data, close }) {
             </div>
 
             <div className="space-y-3">
+              {/* NEW TRANSFER */}
               <button
                 onClick={() => setShowTransfer(true)}
                 className="w-full bg-blue-700 py-3 rounded-lg text-white hover:bg-blue-600 transition"
@@ -44,11 +52,12 @@ export default function EvidenceActionModal({ data, close }) {
                 🚚 New Transfer
               </button>
 
+              {/* VIEW HISTORY */}
               <button
-                disabled
-                className="w-full bg-slate-800 border border-slate-700 py-3 rounded-lg text-white opacity-50 cursor-not-allowed"
+                onClick={openHistory}
+                className="w-full bg-slate-800 border border-slate-700 py-3 rounded-lg text-white hover:bg-slate-700 transition"
               >
-                📥 Receive Evidence (Auto-handled)
+                📜 View Transfer History
               </button>
             </div>
 

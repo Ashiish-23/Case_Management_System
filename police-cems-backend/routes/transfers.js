@@ -74,32 +74,34 @@ router.post("/create", auth, async (req, res) => {
 
     /* 4️⃣ Insert immutable transfer record */
     await client.query(
-      `
-      INSERT INTO evidence_transfers (
-        evidence_id,
-        case_id,
-        from_user_id,
-        initiated_by,
-        from_station,
-        to_station,
-        transfer_type,
-        remarks,
-        transfer_date,
-        created_at
-      )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,CURRENT_DATE,NOW())
-      `,
-      [
-        evidenceId,
-        caseId,
-        custody.current_holder_id,
-        req.user.userId,
-        custody.current_station,
-        toStation.trim(),
-        transferType,
-        reason.trim()
-      ]
-    );
+  `
+  INSERT INTO evidence_transfers (
+    evidence_id,
+    case_id,
+    from_user_id,
+    to_user_id,
+    initiated_by,
+    from_station,
+    to_station,
+    transfer_type,
+    remarks,
+    transfer_date,
+    created_at
+  )
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,CURRENT_DATE,NOW())
+  `,
+  [
+    evidenceId,
+    caseId,
+    custody.current_holder_id, // FROM officer
+    transferType === "INTERNAL" ? toUserId : null, // ✅ TO officer
+    req.user.userId,            // who initiated
+    custody.current_station,
+    toStation.trim(),
+    transferType,
+    reason.trim()
+  ]
+);
 
     /* 5️⃣ Update custody (authoritative state) */
     await client.query(
@@ -136,28 +138,43 @@ router.post("/create", auth, async (req, res) => {
 ========================================================= */
 router.get("/history/:evidenceId", auth, async (req, res) => {
   try {
+    const { evidenceId } = req.params;
+
     const result = await pool.query(
-      `
-      SELECT
-        t.id,
-        t.from_station,
-        t.to_station,
-        t.transfer_type,
-        t.remarks,
-        t.created_at,
-        u.full_name AS initiated_by
+      ` SELECT
+      t.id,
+      t.case_id,
+      t.evidence_id,
+      t.from_station,
+      t.to_station,
+      t.transfer_type,
+      t.remarks,
+      t.transfer_date,
+      t.created_at,
+
+      fu.full_name AS from_officer,
+      tu.full_name AS to_officer,
+      iu.full_name AS transferred_by
+
       FROM evidence_transfers t
-      JOIN users u ON u.id = t.from_user_id
-      JOIN users u ON u.id = t.initiated_by
+
+      LEFT JOIN users fu ON fu.id = t.from_user_id
+      LEFT JOIN users tu ON tu.id = (
+      SELECT current_holder_id
+      FROM evidence_custody ec
+      WHERE ec.evidence_id = t.evidence_id
+      )
+      JOIN users iu ON iu.id = t.initiated_by
+
       WHERE t.evidence_id = $1
-      ORDER BY t.created_at DESC
+      ORDER BY t.created_at DESC;
       `,
-      [req.params.evidenceId]
+      [evidenceId]
     );
 
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("TRANSFER HISTORY ERROR:", err);
     res.status(500).json({ error: "Failed to load transfer history" });
   }
 });
