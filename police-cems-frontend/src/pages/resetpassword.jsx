@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import "../styles/Auth.css"; // Deleted
 
 export default function ResetPassword() {
   const navigate = useNavigate();

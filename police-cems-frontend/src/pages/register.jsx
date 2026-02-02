@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import "../styles/Auth.css"; // Deleted: We don't need this anymore
 
 export default function Register() {
   const navigate = useNavigate();
