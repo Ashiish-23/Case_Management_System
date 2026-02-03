@@ -67,21 +67,21 @@ export default function TransferModal({ evidence, onClose }) {
 
           <input
             value={toStation}
-            onChange={e => setToStation(e.target.value)}
+            onChange={e => setToStation(e.target.value.toLowerCase())}
             placeholder="To Location"
             className="w-full bg-slate-800 p-2 rounded border"
           />
 
           <input
             value={officerId}
-            onChange={e => setOfficerId(e.target.value)}
+            onChange={e => setOfficerId(e.target.value.toLowerCase())}
             placeholder="Officer ID (optional for external)"
             className="w-full bg-slate-800 p-2 rounded border"
           />
 
           <input
             value={officerEmail}
-            onChange={e => setOfficerEmail(e.target.value)}
+            onChange={e => setOfficerEmail(e.target.value.toLowerCase())}
             placeholder="Officer Email (optional for external)"
             className="w-full bg-slate-800 p-2 rounded border"
           />
@@ -89,7 +89,7 @@ export default function TransferModal({ evidence, onClose }) {
           <textarea
             rows={3}
             value={remarks}
-            onChange={e => setRemarks(e.target.value)}
+            onChange={e => setRemarks(e.target.value.toLowerCase())}
             placeholder="Reason / Remarks"
             className="w-full bg-slate-800 p-2 rounded border"
           />

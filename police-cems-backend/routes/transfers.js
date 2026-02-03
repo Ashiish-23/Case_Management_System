@@ -75,6 +75,10 @@ router.post("/create", auth, async (req, res) => {
       if (custody.current_holder_id === toUserId) {
         throw new Error("Cannot transfer evidence to the same officer");
       }
+
+      if (custody.current_station === toStation.trim()) {
+        throw new Error("To Location must differ from current location");
+      }
     }
 
     /* ------------------ 4️⃣ INSERT TRANSFER (IMMUTABLE) ------------------ */
