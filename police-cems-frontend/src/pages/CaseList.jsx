@@ -39,10 +39,10 @@ export default function CaseTable({ cases: initialCases = [] }) {
 
   // Helper to color-code the status badges
   const getStatusStyle = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'open': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'closed': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-      case 'reopened': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+    switch (status?.toUpperCase()) {
+      case 'OPEN': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'CLOSED': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+      case 'REOPENED': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
       default: return 'bg-slate-500/10 text-white border-slate-500/20';
     }
   };

@@ -85,7 +85,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
             <label className={labelStyle}>Description</label>
             <textarea
               value={description}
-              onChange={e => setDescription(e.target.value.toLowerCase())}
+              onChange={e => setDescription(e.target.value)}
               className={`${inputStyle} h-24 resize-none`}
               placeholder="Detailed description of the item..."
               required
@@ -96,7 +96,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
             <label className={labelStyle}>Category</label>
             <input
               value={category}
-              onChange={e => setCategory(e.target.value.toLowerCase())}
+              onChange={e => setCategory(e.target.value)}
               className={inputStyle}
               placeholder="Weapon / Theft / Digital Asset"
               required
@@ -107,7 +107,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
             <label className={labelStyle}>Station Name</label>
             <input
               value={seizedAtStation}
-              onChange={e => setSeizedAtStation(e.target.value.toLowerCase())}
+              onChange={e => setSeizedAtStation(e.target.value)}
               className={inputStyle}
               placeholder="Police station name"
               required

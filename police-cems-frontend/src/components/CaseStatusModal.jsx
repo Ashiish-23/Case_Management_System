@@ -94,7 +94,7 @@ export default function CaseStatusModal({ caseId, currentStatus, onClose }) {
                 <label className={labelStyle}>Reason for Closure</label>
                 <textarea
                   value={reason}
-                  onChange={e => setReason(e.target.value.toLowerCase())}
+                  onChange={e => setReason(e.target.value)}
                   className={`${inputStyle} h-24 resize-none`}
                   placeholder="Why is this case being closed?"
                 />
@@ -104,7 +104,7 @@ export default function CaseStatusModal({ caseId, currentStatus, onClose }) {
                 <label className={labelStyle}>Authority Reference</label>
                 <input
                   value={ref}
-                  onChange={e => setRef(e.target.value.toLowerCase())}
+                  onChange={e => setRef(e.target.value  )}
                   className={inputStyle}
                   placeholder="e.g. Court Order #1234 or SP Approval"
                 />
@@ -140,7 +140,7 @@ export default function CaseStatusModal({ caseId, currentStatus, onClose }) {
                 <label className={labelStyle}>Reason for Re-Opening</label>
                 <textarea
                   value={reason}
-                  onChange={e => setReason(e.target.value.toLowerCase())}
+                  onChange={e => setReason(e.target.value)}
                   className={`${inputStyle} h-32 resize-none`}
                   placeholder="New evidence found? Court order?"
                 />

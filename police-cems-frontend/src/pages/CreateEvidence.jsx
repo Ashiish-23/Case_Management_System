@@ -57,7 +57,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
             <label className="block text-xs font-medium text-white mb-1 uppercase">Description</label>
             <textarea 
               value={description} 
-              onChange={e => setDescription(e.target.value.toLowerCase())} 
+              onChange={e => setDescription(e.target.value)} 
               className={`${inputStyle} h-24 resize-none`}
               placeholder="Describe the item securely..."
               required
@@ -69,7 +69,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
             <label className="block text-xs font-medium text-white mb-1 uppercase">Category</label>
             <input 
               value={category} 
-              onChange={e => setCategory(e.target.value.toLowerCase())} 
+              onChange={e => setCategory(e.target.value)} 
               className={inputStyle}
               placeholder="e.g. Weapon, Narcotic, Document"
               required

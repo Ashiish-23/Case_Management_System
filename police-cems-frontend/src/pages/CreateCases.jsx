@@ -69,7 +69,7 @@ export default function CreateCase() {
               <label className={labelStyle}>Case Title</label>
               <input 
                 name="caseTitle" 
-                onChange={e => change(e, e.target.value.toLowerCase())} 
+                onChange={e => change(e, e.target.value)} 
                 required 
                 className={inputStyle} 
                 placeholder="e.g. Operation Bluebird"
@@ -81,7 +81,7 @@ export default function CreateCase() {
               <div className="relative">
                 <select 
                   name="caseType" 
-                  onChange={e => change(e, e.target.value.toLowerCase())} 
+                  onChange={e => change(e, e.target.value)} 
                   required 
                   className={`${inputStyle} appearance-none cursor-pointer`}
                 >
@@ -106,7 +106,7 @@ export default function CreateCase() {
             <textarea 
               name="description" 
               rows="4" 
-              onChange={e => change(e, e.target.value.toLowerCase())} 
+              onChange={e => change(e, e.target.value)} 
               required 
               className={`${inputStyle} resize-none`}
               placeholder="Detailed incident report..."
@@ -120,11 +120,11 @@ export default function CreateCase() {
             </div>
             <div>
               <label className={labelStyle}>Officer Name</label>
-              <input name="officerName" onChange={e => change(e, e.target.value.toLowerCase())} required className={inputStyle} />
+              <input name="officerName" onChange={e => change(e, e.target.value)} required className={inputStyle} />
             </div>
             <div>
               <label className={labelStyle}>Officer Rank</label>
-              <input name="officerRank" onChange={e => change(e, e.target.value.toLowerCase())} required className={inputStyle} />
+              <input name="officerRank" onChange={e => change(e, e.target.value)} required className={inputStyle} />
             </div>
           </div>
 
@@ -132,11 +132,11 @@ export default function CreateCase() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className={labelStyle}>Police Station Name</label>
-              <input name="stationName" onChange={e => change(e, e.target.value.toLowerCase())} required className={inputStyle} />
+              <input name="stationName" onChange={e => change(e, e.target.value)} required className={inputStyle} />
             </div>
             <div>
               <label className={labelStyle}>FIR Number (Optional)</label>
-              <input name="firNumber" onChange={e => change(e, e.target.value.toLowerCase())} className={inputStyle} placeholder="e.g. FIR-2026-XXXX" />
+              <input name="firNumber" onChange={e => change(e, e.target.value)} className={inputStyle} placeholder="e.g. FIR-2026-XXXX" />
             </div>
           </div>
 
