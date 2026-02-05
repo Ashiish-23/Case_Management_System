@@ -10,8 +10,8 @@ export default function TransferModal({ evidence, onClose }) {
   const token = localStorage.getItem("token");
 
   const submitTransfer = async () => {
-    if (!toStation.trim() || !remarks.trim()) {
-      alert("To Location and Reason are required");
+    if (!toStation.trim() || !remarks.trim() || !officerId.trim() || !officerEmail.trim()) {
+      alert("To Location, Officer ID, Officer Email, and Reason are required");
       return;
     }
 
@@ -27,17 +27,20 @@ export default function TransferModal({ evidence, onClose }) {
         body: JSON.stringify({
           evidenceId: evidence.id,
           toStation: toStation.trim(),
-          toOfficerId: officerId.trim() || null,
-          toOfficerEmail: officerEmail.trim() || null,
-          reason: remarks.trim(),
-          transferType: officerId ? "INTERNAL" : "EXTERNAL_OUT"
+          toOfficerId: officerId.trim(),
+          toOfficerEmail: officerEmail.trim(),
+          reason: remarks.trim()
         })
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      alert("Transfer completed successfully");
+      if (data.emailSent === false) {
+        alert(data.emailError || "Transfer completed, but email failed to send.");
+      } else {
+        alert("Transfer completed successfully");
+      }
       onClose();
       window.location.reload();
 
@@ -65,24 +68,24 @@ export default function TransferModal({ evidence, onClose }) {
           <input disabled value={evidence.current_station || "Unknown"}
             className="w-full bg-slate-800 p-2 rounded border" />
 
-          <input
+          <input 
             value={toStation}
             onChange={e => setToStation(e.target.value)}
             placeholder="To Location"
             className="w-full bg-slate-800 p-2 rounded border"
-          />
+            /> 
 
           <input
             value={officerId}
             onChange={e => setOfficerId(e.target.value)}
-            placeholder="Officer ID (optional for external)"
+            placeholder="Officer ID"
             className="w-full bg-slate-800 p-2 rounded border"
           />
 
           <input
             value={officerEmail}
             onChange={e => setOfficerEmail(e.target.value)}
-            placeholder="Officer Email (optional for external)"
+            placeholder="Officer Email"
             className="w-full bg-slate-800 p-2 rounded border"
           />
 

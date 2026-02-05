@@ -14,7 +14,8 @@ module.exports = (req, res, next) => {
     req.user = {
       userId: decoded.userId,   // <-- VERY IMPORTANT
       role: decoded.role,
-      name: decoded.name
+      name: decoded.name,
+      email: decoded.email
     };
 
     next();

@@ -4,9 +4,10 @@ const pool = require("../db");
 const auth = require("../middleware/authMiddleware");
 const multer = require("multer");
 const path = require("path");
+const { sendEventEmail } = require("../services/emailService");
 
 /* =========================
-   FILE STORAGE
+   FILE STORAGE (MANDATORY)
 ========================= */
 const storage = multer.diskStorage({
   destination: "./uploads/",
@@ -22,22 +23,30 @@ const upload = multer({ storage });
 router.post("/add", auth, upload.single("image"), async (req, res) => {
   const client = await pool.connect();
 
+  let evidenceId;
+  let evidenceCode;
+  let caseNumber;
+
   try {
     const officerId = req.user.userId;
     const { caseId, description, category, seizedAtStation } = req.body;
-    const imagePath = req.file ? req.file.filename : null;
 
-    if (!caseId || !description || !category || !seizedAtStation) {
+    /* ---------- VALIDATION ---------- */
+    if (!caseId || !description || !category || !seizedAtStation || !req.file) {
       return res.status(400).json({
-        error: "All fields including station name are required"
+        error: "All fields including image and station are mandatory"
       });
     }
 
+    const station = seizedAtStation.trim();
+    const imagePath = req.file.filename;
+
+    /* ---------- TRANSACTION (AUTHORITATIVE) ---------- */
     await client.query("BEGIN");
 
-    /* 1️⃣ Verify case exists & is OPEN */
+    // 1️⃣ Verify case exists
     const caseRes = await client.query(
-      "SELECT status FROM cases WHERE id = $1",
+      "SELECT case_number FROM cases WHERE id = $1",
       [caseId]
     );
 
@@ -45,20 +54,18 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
       throw new Error("Case not found");
     }
 
-    if (caseRes.rows[0].status !== "OPEN") {
-      throw new Error("Cannot add evidence to closed case");
-    }
+    caseNumber = caseRes.rows[0].case_number;
 
-    /* 2️⃣ Generate evidence code (SEQUENCE — SAFE) */
+    // 2️⃣ Generate evidence code
     const codeRes = await client.query(`
       SELECT
         'EVD-' || EXTRACT(YEAR FROM NOW())::TEXT || '-' ||
         LPAD(nextval('evidence_seq')::text, 6, '0') AS code
     `);
 
-    const evidenceCode = codeRes.rows[0].code;
+    evidenceCode = codeRes.rows[0].code;
 
-    /* 3️⃣ Insert evidence (historical record) */
+    // 3️⃣ Insert evidence (immutable)
     const evidenceRes = await client.query(
       `
       INSERT INTO evidence (
@@ -80,13 +87,13 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
         category.trim(),
         imagePath,
         officerId,
-        seizedAtStation.trim()
+        station
       ]
     );
 
-    const evidenceId = evidenceRes.rows[0].id;
+    evidenceId = evidenceRes.rows[0].id;
 
-    /* 4️⃣ Initialize custody (CURRENT LOCATION) */
+    // 4️⃣ Initialize custody (current truth)
     await client.query(
       `
       INSERT INTO evidence_custody (
@@ -94,37 +101,50 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
         case_id,
         current_holder_id,
         current_station,
-        custody_status,
         updated_at
       )
-      VALUES ($1,$2,$3, $4, 'ACTIVE',NOW())
+      VALUES ($1,$2,$3,$4,NOW())
       `,
-      [
-        evidenceId,
-        caseId,
-        officerId,
-        seizedAtStation.trim()
-      ]
+      [evidenceId, caseId, officerId, station]
     );
 
     await client.query("COMMIT");
 
-    res.json({
-      success: true,
-      evidenceId,
-      evidenceCode
-    });
-
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("Add evidence failed:", err.message);
-
-    res.status(500).json({
-      error: "Failed to add evidence"
-    });
+    console.error("Add evidence DB failed:", err.message);
+    return res.status(500).json({ error: "Failed to add evidence" });
   } finally {
     client.release();
   }
+
+  /* ---------- SIDE-EFFECT ZONE (NON-AUTHORITATIVE) ---------- */
+  let emailResult = null;
+
+  try {
+    emailResult = await sendEventEmail({
+      eventType: "EVIDENCE_CREATED",
+      data: {
+        email: req.user.email,
+        evidenceCode,
+        caseNumber,
+        evidenceId,
+        station: req.body.seizedAtStation
+      },
+      db: pool
+    });
+  } catch (err) {
+    // This should NEVER affect the response
+    console.error("Evidence email failed:", err.message);
+  }
+
+  /* ---------- FINAL RESPONSE (TRUTHFUL) ---------- */
+  res.json({
+    success: true,
+    evidenceId,
+    evidenceCode,
+    emailSent: emailResult?.ok ?? false
+  });
 });
 
 /* =========================
@@ -143,8 +163,8 @@ router.get("/case/:caseId", auth, async (req, res) => {
         e.logged_at,
         u.full_name AS officer_name
       FROM evidence e
-      LEFT JOIN users u ON e.logged_by = u.id
-      LEFT JOIN evidence_custody ec ON e.id = ec.evidence_id
+      JOIN users u ON e.logged_by = u.id
+      JOIN evidence_custody ec ON e.id = ec.evidence_id
       WHERE e.case_id = $1
       ORDER BY e.logged_at DESC
       `,
@@ -154,7 +174,7 @@ router.get("/case/:caseId", auth, async (req, res) => {
     res.json(result.rows);
 
   } catch (err) {
-    console.error(err);
+    console.error("Load evidence failed:", err.message);
     res.status(500).json({ error: "Failed to load evidence" });
   }
 });

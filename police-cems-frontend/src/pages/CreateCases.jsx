@@ -49,7 +49,7 @@ export default function CreateCase() {
 
   return (
     // Main Background
-    <div className="min-h-screen bg-blue-700 py-10 px-4 flex justify-center items-start">
+    <div className="min-h-screen bg-blue-900 py-10 px-4 flex justify-center items-start">
       
       {/* Card Container */}
       <div className="max-w-4xl w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
@@ -66,7 +66,7 @@ export default function CreateCase() {
           {/* Row 1: Title & Type */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className={labelStyle}>Case Title</label>
+              <label className={labelStyle}>Case Title <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
               <input 
                 name="caseTitle" 
                 onChange={e => change(e, e.target.value)} 
@@ -77,7 +77,7 @@ export default function CreateCase() {
             </div>
 
             <div>
-              <label className={labelStyle}>Case Type</label>
+              <label className={labelStyle}>Case Type <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
               <div className="relative">
                 <select 
                   name="caseType" 
@@ -85,7 +85,7 @@ export default function CreateCase() {
                   required 
                   className={`${inputStyle} appearance-none cursor-pointer`}
                 >
-                  <option value="" className="text-white">Select Case Type</option>
+                  <option value="" className="text-white">Select Case Type <span style={{ color: 'red', fontSize: '20px' }}>*</span> </option>
                   <option>Theft</option>
                   <option>Cyber Crime</option>
                   <option>Homicide</option>
@@ -102,7 +102,7 @@ export default function CreateCase() {
 
           {/* Row 2: Description (Full Width) */}
           <div>
-            <label className={labelStyle}>Case Description</label>
+            <label className={labelStyle}>Case Description <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
             <textarea 
               name="description" 
               rows="4" 
@@ -119,11 +119,11 @@ export default function CreateCase() {
                <h4 className="text-sm font-bold text-blue-400 uppercase mb-2">Investigating Officer Details</h4>
             </div>
             <div>
-              <label className={labelStyle}>Officer Name</label>
+              <label className={labelStyle}>Officer Name <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
               <input name="officerName" onChange={e => change(e, e.target.value)} required className={inputStyle} />
             </div>
             <div>
-              <label className={labelStyle}>Officer Rank</label>
+              <label className={labelStyle}>Officer Rank <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
               <input name="officerRank" onChange={e => change(e, e.target.value)} required className={inputStyle} />
             </div>
           </div>
@@ -131,12 +131,12 @@ export default function CreateCase() {
           {/* Row 4: Station & FIR */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className={labelStyle}>Police Station Name</label>
+              <label className={labelStyle}>Police Station Name <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
               <input name="stationName" onChange={e => change(e, e.target.value)} required className={inputStyle} />
             </div>
             <div>
-              <label className={labelStyle}>FIR Number (Optional)</label>
-              <input name="firNumber" onChange={e => change(e, e.target.value)} className={inputStyle} placeholder="e.g. FIR-2026-XXXX" />
+              <label className={labelStyle}>FIR Number <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
+              <input name="firNumber" onChange={e => change(e, e.target.value)} className={inputStyle} required placeholder="e.g. FIR-2026-XXXX" />
             </div>
           </div>
 

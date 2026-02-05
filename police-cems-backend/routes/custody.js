@@ -14,7 +14,6 @@ router.get("/:evidenceId", auth, async (req, res) => {
         ec.evidence_id,
         ec.current_station,
         ec.current_holder_id,
-        ec.custody_status,
         e.evidence_code,
         e.description,
         e.case_id

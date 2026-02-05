@@ -39,9 +39,6 @@ export default function Dashboard() {
 
         setStats([
           { label: "Total Cases", value: data.totalCases },
-          { label: "Open Cases", value: data.openCases },
-          { label: "Re-opened Cases", value: data.reopenedCases },
-          { label: "Closed Cases", value: data.closedCases },
           { label: "Evidence Items", value: data.evidenceItems },
           { label: "Transfers", value: data.transfers }
         ]);
@@ -79,7 +76,7 @@ export default function Dashboard() {
             Officer Dashboard
           </h2>
           <p className="text-white text-sm mt-1">
-            Overview of active investigations and secure evidence chain
+            Overview of registered cases and secure evidence ledger
           </p>
         </div>
 
@@ -92,7 +89,7 @@ export default function Dashboard() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24">
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-white">Loading secure case files…</p>
+            <p className="text-white">Loading secure case records…</p>
           </div>
         ) : (
           <div className="bg-blue-900/50 border border-slate-700 rounded-xl shadow-xl overflow-hidden">

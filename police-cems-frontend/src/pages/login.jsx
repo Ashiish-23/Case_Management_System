@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -7,6 +8,7 @@ export default function Login() {
     loginId: "",
     password: ""
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -64,7 +66,7 @@ export default function Login() {
         <form className="space-y-5" onSubmit={submit}>
           
           <div>
-            <label className="block text-xs font-medium text-white mb-1 uppercase tracking-wider">Officer ID</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase tracking-wider">Officer ID <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
             <input 
               name="loginId" 
               placeholder="Enter Badge Number" 
@@ -75,15 +77,25 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-white mb-1 uppercase tracking-wider">Secure Password</label>
-            <input 
-              name="password" 
-              type="password" 
-              placeholder="Enter Password" 
-              onChange={handleChange} 
-              required 
-              className={inputStyle}
-            />
+            <label className="block text-xs font-medium text-white mb-1 uppercase tracking-wider">Secure Password <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
+            <div className="relative">
+              <input 
+                name="password" 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Enter Password" 
+                onChange={handleChange} 
+                required 
+                className={`${inputStyle} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(s => !s)}
+                className="absolute inset-y-0 right-0 px-4 text-slate-300 hover:text-white"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           <button 

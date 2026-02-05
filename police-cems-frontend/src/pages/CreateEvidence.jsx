@@ -54,7 +54,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
           {/* Description Field */}
           <div>
-            <label className="block text-xs font-medium text-white mb-1 uppercase">Description</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase">Description <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
             <textarea 
               value={description} 
               onChange={e => setDescription(e.target.value)} 
@@ -66,7 +66,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
           {/* Category Field */}
           <div>
-            <label className="block text-xs font-medium text-white mb-1 uppercase">Category</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase">Category <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
             <input 
               value={category} 
               onChange={e => setCategory(e.target.value)} 
@@ -78,7 +78,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
           {/* File Upload Field (Styled specifically for Tailwind) */}
           <div>
-            <label className="block text-xs font-medium text-white mb-1 uppercase">Evidence Photo</label>
+            <label className="block text-xs font-medium text-white mb-1 uppercase">Evidence Photo <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
             <input 
               type="file" 
               onChange={e => setImage(e.target.files[0])} 

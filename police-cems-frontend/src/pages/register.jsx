@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ export default function Register() {
     confirmPassword: "",
     role: ""
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = e =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -27,10 +30,16 @@ export default function Register() {
     });
 
     if (res.ok) {
-      alert("Registration successful");
+      const data = await res.json();
+      if (data.emailSent === false) {
+        alert(data.emailError || "Registration successful, but email failed to send.");
+      } else {
+        alert("Registration successful");
+      }
       navigate("/login");
     } else {
-      alert("Registration failed");
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Registration failed");
     }
   };
 
@@ -104,22 +113,42 @@ export default function Register() {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            <input 
-              name="password" 
-              type="password" 
-              placeholder="Password" 
-              onChange={handleChange} 
-              required 
-              className={inputStyle}
-            />
-            <input 
-              name="confirmPassword" 
-              type="password" 
-              placeholder="Confirm Password" 
-              onChange={handleChange} 
-              required 
-              className={inputStyle}
-            />
+            <div className="relative">
+              <input 
+                name="password" 
+                type={showPassword ? "text" : "password"} 
+                placeholder="Password" 
+                onChange={handleChange} 
+                required 
+                className={`${inputStyle} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(s => !s)}
+                className="absolute inset-y-0 right-0 px-4 text-slate-300 hover:text-white"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            <div className="relative">
+              <input 
+                name="confirmPassword" 
+                type={showConfirmPassword ? "text" : "password"} 
+                placeholder="Confirm Password" 
+                onChange={handleChange} 
+                required 
+                className={`${inputStyle} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(s => !s)}
+                className="absolute inset-y-0 right-0 px-4 text-slate-300 hover:text-white"
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           {/* Register Button */}

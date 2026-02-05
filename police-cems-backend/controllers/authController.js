@@ -1,15 +1,27 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const pool = require("../db");
+const nodemailer = require("nodemailer");
+
+/* ================= OPTIONAL TRANSPORT (REGISTRATION ONLY) ================= */
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SYSTEM_EMAIL,
+    pass: process.env.SYSTEM_EMAIL_APP_PASSWORD
+  }
+});
 
 /**
  * REGISTER
+ * Identity creation — HARD transaction
+ * Email is optional and non-authoritative
  */
 exports.register = async (req, res) => {
   const { name, loginId, email, password, role } = req.body;
 
   try {
-    // Check if loginId already exists
+    // 1️⃣ Check login ID uniqueness
     const exists = await pool.query(
       "SELECT id FROM users WHERE login_id = $1",
       [loginId]
@@ -19,34 +31,63 @@ exports.register = async (req, res) => {
       return res.status(409).json({ error: "Login ID already exists" });
     }
 
-    // Hash password
+    // 2️⃣ Hash password
     const hash = await bcrypt.hash(password, 12);
 
-    // Insert user
-    await pool.query(
-      `INSERT INTO users (full_name, login_id, email, password_hash, role)
-       VALUES ($1, $2, $3, $4, $5)`,
+    // 3️⃣ Insert user (authoritative)
+    const result = await pool.query(
+      `
+      INSERT INTO users (full_name, login_id, email, password_hash, role)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, full_name, login_id, email
+      `,
       [name, loginId, email, hash, role]
     );
 
-    res.status(201).json({ message: "User registered successfully" });
+    const user = result.rows[0];
+
+    // 4️⃣ OPTIONAL welcome email (after commit)
+    try {
+      await transporter.sendMail({
+        from: `"Police CEMS" <${process.env.SYSTEM_EMAIL}>`,
+        to: user.email,
+        subject: "Welcome to Police CEMS",
+        html: `
+          <h3>Welcome, ${user.full_name}</h3>
+          <p>Your officer account has been created successfully.</p>
+          <p><b>Login ID:</b> ${user.login_id}</p>
+        `
+      });
+    } catch (emailErr) {
+      // ❌ ignored by design
+      console.warn("Registration email failed:", emailErr.message);
+    }
+
+    // 5️⃣ Success response (authoritative)
+    res.status(201).json({
+      message: "User registered successfully"
+    });
 
   } catch (err) {
-    console.error("Register error:", err);
+    console.error("Register error:", err.message);
     res.status(500).json({ error: "Registration failed" });
   }
 };
 
 /**
  * LOGIN
+ * DB-only authority
  */
 exports.login = async (req, res) => {
   const { loginId, password } = req.body;
 
   try {
     const result = await pool.query(
-      `SELECT id, full_name, role, password_hash
-       FROM users WHERE login_id = $1`,
+      `
+      SELECT id, full_name, role, email, password_hash
+      FROM users
+      WHERE login_id = $1
+      `,
       [loginId]
     );
 
@@ -61,12 +102,13 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Create JWT
+    // Issue JWT (email included — correct)
     const token = jwt.sign(
       {
         userId: user.id,
         role: user.role,
-        name: user.full_name
+        name: user.full_name,
+        email: user.email
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
@@ -76,12 +118,13 @@ exports.login = async (req, res) => {
       token,
       user: {
         name: user.full_name,
-        role: user.role
+        role: user.role,
+        email: user.email
       }
     });
 
   } catch (err) {
-    console.error("Login error:", err);
+    console.error("Login error:", err.message);
     res.status(500).json({ error: "Server error" });
   }
 };

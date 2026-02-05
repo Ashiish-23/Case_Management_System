@@ -50,6 +50,12 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
         throw new Error(payload.error || "Failed to add evidence");
       }
 
+      if (payload.emailSent === false) {
+        alert(payload.emailError || "Evidence added, but email failed to send.");
+      } else {
+        alert("Evidence added successfully");
+      }
+
       // ✅ SUCCESS PATH ONLY
       onAdded?.();
       onClose();
@@ -82,7 +88,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
         <form onSubmit={submit} className="p-6 space-y-5">
 
           <div>
-            <label className={labelStyle}>Description</label>
+            <label className={labelStyle}>Description <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -93,7 +99,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
           </div>
 
           <div>
-            <label className={labelStyle}>Category</label>
+            <label className={labelStyle}>Category <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
             <input
               value={category}
               onChange={e => setCategory(e.target.value)}
@@ -104,7 +110,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
           </div>
 
           <div>
-            <label className={labelStyle}>Station Name</label>
+            <label className={labelStyle}>Station Name <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
             <input
               value={seizedAtStation}
               onChange={e => setSeizedAtStation(e.target.value)}
@@ -115,10 +121,11 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
           </div>
 
           <div>
-            <label className={labelStyle}>Upload Image (optional)</label>
+            <label className={labelStyle}>Upload Image <span style={{ color: 'red', fontSize: '20px' }}>*</span> </label>
             <input
               type="file"
               accept="image/*"
+              required
               onChange={e => setImage(e.target.files[0])}
               className="text-white text-sm rounded-lg px-3 py-2"
             />

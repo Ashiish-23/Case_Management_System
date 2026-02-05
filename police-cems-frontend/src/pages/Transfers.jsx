@@ -14,7 +14,7 @@ export default function Transfers() {
     })
       .then(res => res.json())
       .then(setItems);
-  }, []);
+  }, [ token ]);
 
   return (
     <div className="p-8 bg-blue-950 text-white min-h-screen">
@@ -25,7 +25,6 @@ export default function Transfers() {
           <tr>
             <th className="p-3 text-left text-white">Evidence</th>
             <th className="p-3 text-white">Current Station</th>
-            <th className="p-3 text-white">Status</th>
             <th className="p-3 text-white">Action</th>
           </tr>
         </thead>
@@ -34,7 +33,6 @@ export default function Transfers() {
             <tr key={row.evidence_id} className="border-t bg-blue-850 border-blue-700 hover:bg-blue-800">
               <td className="p-3 text-blue-50">{row.evidence_code}</td>
               <td className="p-3 text-blue-50">{row.current_station}</td>
-              <td className="p-3 text-blue-50">{row.custody_status}</td>
               <td className="p-3 flex gap-3">
                 <button
                   onClick={() => navigate(`/transfers/new/${row.evidence_id}`)}
