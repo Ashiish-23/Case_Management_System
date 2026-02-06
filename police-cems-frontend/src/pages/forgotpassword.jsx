@@ -1,3 +1,4 @@
+// Forgot password page: request a reset link.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 // import "../styles/Auth.css"; // Deleted

@@ -1,3 +1,4 @@
+// Create evidence page (legacy/fullscreen form if used).
 import { useState } from "react";
 // import "../styles/modal.css"; // Deleted
 

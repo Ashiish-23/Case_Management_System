@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+// Case list page: fetch and render all cases.
 import { useEffect, useState } from "react";
 
 export default function CaseTable({ cases: initialCases = [] }) {

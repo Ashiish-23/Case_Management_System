@@ -1,3 +1,4 @@
+// Dashboard page: stats, recent cases, and primary actions.
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 

@@ -1,3 +1,4 @@
+// Modal for transferring evidence custody.
 import { useState } from "react";
 
 export default function TransferModal({ evidence, onClose }) {

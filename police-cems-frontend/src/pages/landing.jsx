@@ -1,3 +1,4 @@
+// Public landing page with product overview and CTA.
 import { Link } from "react-router-dom";
 
 export default function Landing() {

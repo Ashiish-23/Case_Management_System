@@ -3,6 +3,7 @@ const { register, login } = require("../controllers/authController");
 
 const router = express.Router();
 
+// Auth endpoints delegate to controller logic.
 router.post("/register", register);
 router.post("/login", login);
 

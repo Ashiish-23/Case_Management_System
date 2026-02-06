@@ -1,3 +1,4 @@
+// Reset password page: apply token + new password.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 

@@ -1,3 +1,4 @@
+// Aggregated dashboard stats (counts only).
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");

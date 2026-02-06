@@ -1,3 +1,4 @@
+// Modal for evidence actions (transfer + history).
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TransferModal from "./TransferModal";

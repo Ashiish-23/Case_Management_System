@@ -1,3 +1,4 @@
+// Authentication controller: registration and login.
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const pool = require("../db");

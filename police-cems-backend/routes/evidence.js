@@ -1,3 +1,4 @@
+// Evidence creation and listing endpoints.
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
@@ -5,6 +6,8 @@ const auth = require("../middleware/authMiddleware");
 const multer = require("multer");
 const path = require("path");
 const { sendEventEmail } = require("../services/emailService");
+
+// All evidence routes require authenticated officers.
 
 /* =========================
    FILE STORAGE (MANDATORY)

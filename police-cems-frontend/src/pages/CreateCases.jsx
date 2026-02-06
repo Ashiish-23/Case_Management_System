@@ -1,3 +1,4 @@
+// Create case form page.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 // import "../styles/CreateCase.css"; // Deleted

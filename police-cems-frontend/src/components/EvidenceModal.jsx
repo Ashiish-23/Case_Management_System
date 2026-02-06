@@ -1,3 +1,4 @@
+// Modal for viewing evidence details.
 // import "../styles/modal.css"; // Deleted
 
 export default function EvidenceModal({ data, close }) {

@@ -1,3 +1,4 @@
+// Case detail page: case summary + evidence list + actions.
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 

@@ -1,7 +1,10 @@
+// Case creation and retrieval endpoints.
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const auth = require("../middleware/authMiddleware");
+
+// All case routes are protected by JWT auth middleware.
 
 /* =========================================================
    CASE NUMBER GENERATOR

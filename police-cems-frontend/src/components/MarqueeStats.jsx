@@ -1,3 +1,4 @@
+// Horizontal marquee for dashboard stats.
 export default function MarqueeStats({ stats }) {
 
   if (!Array.isArray(stats)) {

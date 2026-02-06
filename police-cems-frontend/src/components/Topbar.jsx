@@ -1,3 +1,4 @@
+// Top navigation bar with user actions and shortcuts.
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";

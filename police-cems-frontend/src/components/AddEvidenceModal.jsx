@@ -1,3 +1,4 @@
+// Modal for creating a new evidence record with optional image upload.
 import { useState } from "react";
 
 export default function AddEvidenceModal({ caseId, onClose, onAdded }) {

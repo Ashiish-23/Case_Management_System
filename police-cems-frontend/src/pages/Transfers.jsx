@@ -1,3 +1,4 @@
+// Transfers page: list custody items and open transfer/history flows.
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TransferHistory from "./TransferHistory";

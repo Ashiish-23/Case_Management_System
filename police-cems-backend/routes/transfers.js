@@ -1,3 +1,4 @@
+// Evidence transfer endpoints (ledger + custody update).
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
@@ -73,7 +74,8 @@ router.post("/create", auth, async (req, res) => {
 
     // 3️⃣ Resolve receiving officer
     const officerRes = await client.query(
-      `SELECT id FROM users WHERE login_id = $1 AND email = $2`,
+      `SELECT id FROM users WHERE LOWER(TRIM(login_id)) = LOWER(TRIM($1))
+      AND LOWER(TRIM(email)) = LOWER(TRIM($2))`,
       [toOfficerId, toOfficerEmail]
     );
 
@@ -85,41 +87,45 @@ router.post("/create", auth, async (req, res) => {
 
     // 🚫 Block no-op transfer
     if (
-      custody.current_holder_id === toUserId &&
-      custody.current_station === toStationTrim
-    ) {
+      custody.current_holder_id === toUserId ) {
       throw new Error("Transfer must change officer or location");
+    }
+
+    if (custody.current_station.toLowerCase() === toStationTrim.toLowerCase()) {
+      throw new Error("Transfer must change station");
     }
 
     // 4️⃣ Insert transfer (immutable ledger)
     const transferRes = await client.query(
-      `
-      INSERT INTO evidence_transfers (
-        evidence_id,
-        case_id,
-        from_user_id,
-        to_user_id,
-        initiated_by,
-        from_station,
-        to_station,
-        remarks,
-        transfer_date,
-        created_at
-      )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,CURRENT_DATE,NOW())
-      RETURNING id
-      `,
-      [
-        evidenceId,
-        caseId,
-        custody.current_holder_id,
-        toUserId,
-        req.user.userId,
-        custody.current_station,
-        toStationTrim,
-        reason.trim()
-      ]
-    );
+  `
+  INSERT INTO evidence_transfers (
+    evidence_id,
+    case_id,
+    from_user_id,
+    to_user_id,
+    initiated_by,
+    from_station,
+    to_station,
+    transfer_type,
+    remarks,
+    transfer_date,
+    created_at
+  )
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,CURRENT_DATE,NOW())
+  RETURNING id
+  `,
+  [
+    evidenceId,
+    caseId,
+    custody.current_holder_id,
+    toUserId,
+    req.user.userId,
+    custody.current_station,
+    toStationTrim,
+    "TRANSFER",          // ✅ STRING LITERAL (NOT VARIABLE)
+    reason.trim()
+  ]
+);
 
     transferId = transferRes.rows[0].id;
 
