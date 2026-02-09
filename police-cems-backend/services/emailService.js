@@ -65,6 +65,37 @@ function buildEmailForEvent(eventType, data) {
     referenceId: data.evidenceId
   };
 
+  case "USER_REGISTERED_NOTIFICATION":
+  return {
+    to: data.email,
+    subject: `[Police CEMS] Officer Account Registered`,
+    html: `
+      <div style="font-family: Arial, sans-serif; background:#020617; color:#e5e7eb; padding:24px;">
+        <h2 style="color:#22c55e;">
+          Officer Account Successfully Created
+        </h2>
+
+        <p>
+          This is an official notification confirming that your officer account
+          has been successfully registered in the Police Case & Evidence
+          Management System (CEMS).
+        </p>
+
+        <table style="margin-top:16px; border-collapse:collapse;">
+          <tr><td><b>Officer Name</b></td><td>${data.fullName}</td></tr>
+          <tr><td><b>Login ID</b></td><td>${data.loginId}</td></tr>
+          <tr><td><b>Registered Email</b></td><td>${data.email}</td></tr>
+        </table>
+
+        <p style="margin-top:24px; font-size:12px; color:#94a3b8;">
+          If you did not request this registration, contact your system administrator immediately.
+          This message was generated automatically by Police CEMS.
+        </p>
+      </div>
+    `,
+    referenceId: data.userId
+  };
+
     case "EVIDENCE_TRANSFERRED":
   return {
     to: data.email,

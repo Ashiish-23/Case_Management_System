@@ -1,33 +1,108 @@
 import { useNavigate } from "react-router-dom";
-// Case list page: fetch and render all cases.
 import { useEffect, useState } from "react";
 
-export default function CaseTable({ cases: initialCases = [] }) {
-  const navigate = useNavigate();
-  const [cases, setCases] = useState(initialCases);
+/* ================= SECURITY HELPERS ================= */
 
-  /* Sync with parent props */
+async function secureFetch(url, options = {}, timeout = 15000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+function safeArray(data) {
+  return Array.isArray(data) ? data : [];
+}
+
+function safeText(v, max = 200) {
+  if (typeof v !== "string") return "";
+  return v.slice(0, max);
+}
+
+function safeDate(date) {
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "Invalid Date";
+
+    return d.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    });
+  } catch {
+    return "Invalid Date";
+  }
+}
+
+/* ================= COMPONENT ================= */
+
+export default function CaseTable({ cases: initialCases = [] }) {
+
+  const navigate = useNavigate();
+  const [cases, setCases] = useState(safeArray(initialCases));
+
+  /* ---------- Sync With Parent ---------- */
   useEffect(() => {
-    setCases(initialCases);
+    setCases(safeArray(initialCases));
   }, [initialCases]);
 
-  /* Fetch from backend once (authoritative source) */
+  /* ---------- Authoritative Fetch ---------- */
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
 
-    fetch("http://localhost:5000/api/cases", {
-      headers: { Authorization: "Bearer " + token }
-    })
-      .then(res => {
-        if (!res.ok) return null;
-        return res.json();
-      })
-      .then(data => {
-        if (Array.isArray(data)) setCases(data);
-      })
-      .catch(err => console.error("Cases fetch error:", err));
+    let mounted = true;
+
+    async function loadCases() {
+
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      try {
+
+        const res = await secureFetch(
+          "http://localhost:5000/api/cases",
+          {
+            headers: { Authorization: "Bearer " + token }
+          }
+        );
+
+        if (res.status === 401 || res.status === 403) {
+          localStorage.clear();
+          window.location.href = "/login";
+          return;
+        }
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        if (mounted && Array.isArray(data)) {
+          setCases(data);
+        }
+
+      } catch (err) {
+
+        if (err.name === "AbortError") {
+          console.warn("Cases fetch timeout");
+        } else {
+          console.error("Cases fetch error:", err);
+        }
+
+      }
+    }
+
+    loadCases();
+
+    return () => {
+      mounted = false;
+    };
+
   }, []);
+
+  /* ================= UI ================= */
 
   return (
     <div className="w-full">
@@ -37,6 +112,7 @@ export default function CaseTable({ cases: initialCases = [] }) {
         <h3 className="text-lg font-semibold text-white tracking-wide">
           Registered Case Records
         </h3>
+
         <span className="text-xs text-white uppercase tracking-wider font-medium">
           Total Cases: {cases.length}
         </span>
@@ -58,36 +134,45 @@ export default function CaseTable({ cases: initialCases = [] }) {
           </thead>
 
           <tbody className="divide-y divide-slate-700/50 text-sm">
+
             {cases.length > 0 ? (
-              cases.map(c => (
-                <tr
-                  key={c.id}
-                  onClick={() => navigate(`/case/${c.id}`)}
-                  className="hover:bg-slate-700/30 transition-colors cursor-pointer group"
-                >
-                  <td className="px-6 py-4 font-mono text-white group-hover:text-blue-300">
-                    {c.case_number}
-                  </td>
 
-                  <td className="px-6 py-4 text-slate-200 font-medium">
-                    {c.case_title}
-                  </td>
+              cases.map(c => {
 
-                  <td className="px-6 py-4 text-white">
-                    <span className="bg-blue-900/30 px-2 py-1 rounded text-xs">
-                      {c.case_type}
-                    </span>
-                  </td>
+                const safeId = safeText(c?.id, 64);
+                const caseNumber = safeText(c?.case_number, 50);
+                const title = safeText(c?.case_title, 200);
+                const type = safeText(c?.case_type, 100);
+                const regDate = safeDate(c?.registered_date);
 
-                  <td className="px-6 py-4 text-white text-right font-mono">
-                    {new Date(c.registered_date).toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric"
-                    })}
-                  </td>
-                </tr>
-              ))
+                return (
+                  <tr
+                    key={safeId}
+                    onClick={() => safeId && navigate(`/case/${safeId}`)}
+                    className="hover:bg-slate-700/30 transition-colors cursor-pointer group"
+                  >
+                    <td className="px-6 py-4 font-mono text-white group-hover:text-blue-300">
+                      {caseNumber}
+                    </td>
+
+                    <td className="px-6 py-4 text-slate-200 font-medium">
+                      {title}
+                    </td>
+
+                    <td className="px-6 py-4 text-white">
+                      <span className="bg-blue-900/30 px-2 py-1 rounded text-xs">
+                        {type}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-4 text-white text-right font-mono">
+                      {regDate}
+                    </td>
+                  </tr>
+                );
+
+              })
+
             ) : (
               <tr>
                 <td colSpan="4" className="px-6 py-12 text-center text-white italic">
@@ -95,10 +180,12 @@ export default function CaseTable({ cases: initialCases = [] }) {
                 </td>
               </tr>
             )}
+
           </tbody>
 
         </table>
       </div>
+
     </div>
   );
 }

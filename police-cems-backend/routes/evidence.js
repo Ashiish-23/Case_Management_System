@@ -1,27 +1,43 @@
-// Evidence creation and listing endpoints.
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const auth = require("../middleware/authMiddleware");
 const multer = require("multer");
 const path = require("path");
+const crypto = require("crypto");
 const { sendEventEmail } = require("../services/emailService");
 
-// All evidence routes require authenticated officers.
-
 /* =========================
-   FILE STORAGE (MANDATORY)
+   FILE SECURITY CONFIG
 ========================= */
-const storage = multer.diskStorage({
-  destination: "./uploads/",
-  filename: (_, file, cb) =>
-    cb(null, Date.now() + path.extname(file.originalname))
+
+const MAX_FILE_MB = 5;
+const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: "./uploads/",
+    filename: (_, file, cb) => {
+      const safeName =
+        crypto.randomUUID() + path.extname(file.originalname).toLowerCase();
+      cb(null, safeName);
+    }
+  }),
+
+  limits: { fileSize: MAX_FILE_BYTES },
+
+  fileFilter: (req, file, cb) => {
+    if (!ALLOWED_TYPES.includes(file.mimetype)) {
+      return cb(new Error("INVALID_FILE_TYPE"));
+    }
+    cb(null, true);
+  }
 });
 
-const upload = multer({ storage });
-
 /* =========================
-   ADD EVIDENCE + INIT CUSTODY
+   ADD EVIDENCE
 ========================= */
 router.post("/add", auth, upload.single("image"), async (req, res) => {
   const client = await pool.connect();
@@ -34,32 +50,40 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
     const officerId = req.user.userId;
     const { caseId, description, category, seizedAtStation } = req.body;
 
-    /* ---------- VALIDATION ---------- */
-    if (!caseId || !description || !category || !seizedAtStation || !req.file) {
+    if (
+      !caseId ||
+      typeof description !== "string" ||
+      typeof category !== "string" ||
+      typeof seizedAtStation !== "string" ||
+      !req.file
+    ) {
       return res.status(400).json({
-        error: "All fields including image and station are mandatory"
+        error: "All fields including valid image are required"
       });
     }
 
-    const station = seizedAtStation.trim();
-    const imagePath = req.file.filename;
+    if (description.length > 1000 || category.length > 100) {
+      return res.status(400).json({ error: "Input too long" });
+    }
 
-    /* ---------- TRANSACTION (AUTHORITATIVE) ---------- */
+    const station = seizedAtStation.trim();
+    if (station.length < 2 || station.length > 100) {
+      return res.status(400).json({ error: "Invalid station name" });
+    }
+
     await client.query("BEGIN");
 
-    // 1️⃣ Verify case exists
     const caseRes = await client.query(
       "SELECT case_number FROM cases WHERE id = $1",
       [caseId]
     );
 
     if (!caseRes.rows.length) {
-      throw new Error("Case not found");
+      throw new Error("CASE_NOT_FOUND");
     }
 
     caseNumber = caseRes.rows[0].case_number;
 
-    // 2️⃣ Generate evidence code
     const codeRes = await client.query(`
       SELECT
         'EVD-' || EXTRACT(YEAR FROM NOW())::TEXT || '-' ||
@@ -68,7 +92,6 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
 
     evidenceCode = codeRes.rows[0].code;
 
-    // 3️⃣ Insert evidence (immutable)
     const evidenceRes = await client.query(
       `
       INSERT INTO evidence (
@@ -88,7 +111,7 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
         evidenceCode,
         description.trim(),
         category.trim(),
-        imagePath,
+        req.file.filename,
         officerId,
         station
       ]
@@ -96,7 +119,6 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
 
     evidenceId = evidenceRes.rows[0].id;
 
-    // 4️⃣ Initialize custody (current truth)
     await client.query(
       `
       INSERT INTO evidence_custody (
@@ -115,17 +137,36 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
 
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("Add evidence DB failed:", err.message);
+
+    console.error("Add evidence failed:", err.message);
+
+    /* ⭐ CLEAR ERROR RESPONSES */
+
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        error: `File too large. Maximum allowed size is ${MAX_FILE_MB}MB`
+      });
+    }
+
+    if (err.message === "INVALID_FILE_TYPE") {
+      return res.status(400).json({
+        error: "Only JPG, PNG, WEBP images are allowed"
+      });
+    }
+
+    if (err.message === "CASE_NOT_FOUND") {
+      return res.status(404).json({ error: "Case not found" });
+    }
+
     return res.status(500).json({ error: "Failed to add evidence" });
+
   } finally {
     client.release();
   }
 
-  /* ---------- SIDE-EFFECT ZONE (NON-AUTHORITATIVE) ---------- */
-  let emailResult = null;
-
+  /* ---------- EMAIL SIDE EFFECT ---------- */
   try {
-    emailResult = await sendEventEmail({
+    await sendEventEmail({
       eventType: "EVIDENCE_CREATED",
       data: {
         email: req.user.email,
@@ -137,24 +178,25 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
       db: pool
     });
   } catch (err) {
-    // This should NEVER affect the response
     console.error("Evidence email failed:", err.message);
   }
 
-  /* ---------- FINAL RESPONSE (TRUTHFUL) ---------- */
   res.json({
     success: true,
     evidenceId,
-    evidenceCode,
-    emailSent: emailResult?.ok ?? false
+    evidenceCode
   });
 });
 
 /* =========================
-   LIST EVIDENCE FOR CASE
+   LIST EVIDENCE
 ========================= */
 router.get("/case/:caseId", auth, async (req, res) => {
   try {
+    if (!req.params.caseId) {
+      return res.status(400).json({ error: "Case ID required" });
+    }
+
     const result = await pool.query(
       `
       SELECT 

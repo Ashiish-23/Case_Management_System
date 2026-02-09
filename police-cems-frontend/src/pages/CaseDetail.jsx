@@ -1,4 +1,3 @@
-// Case detail page: case summary + evidence list + actions.
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -6,7 +5,42 @@ import AddEvidenceModal from "../components/AddEvidenceModal";
 import EvidenceActionModal from "../components/EvidenceActionModal";
 import Topbar from "../components/Topbar";
 
+/* ================= SECURITY HELPERS ================= */
+
+function safeString(v) {
+  if (typeof v !== "string") return "";
+  return v.trim();
+}
+
+function safeArray(v) {
+  return Array.isArray(v) ? v : [];
+}
+
+function safeDate(v) {
+  try {
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return "Invalid Date";
+    return d.toLocaleDateString("en-GB");
+  } catch {
+    return "Invalid Date";
+  }
+}
+
+async function secureFetch(url, options = {}, timeout = 10000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+/* ================= COMPONENT ================= */
+
 export default function CaseDetail() {
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -16,28 +50,88 @@ export default function CaseDetail() {
   const [selectedEvidence, setSelectedEvidence] = useState(null);
 
   /* ---------- LOAD DATA ---------- */
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
+
     const token = localStorage.getItem("token");
 
-    // CASE DETAILS (IMMUTABLE FACT)
-    fetch(`http://localhost:5000/api/cases/${id}`, {
-      headers: { Authorization: "Bearer " + token }
-    })
-      .then(res => res.json())
-      .then(setCaseData);
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
 
-    // EVIDENCE LEDGER FOR CASE
-    fetch(`http://localhost:5000/api/evidence/case/${id}`, {
-      headers: { Authorization: "Bearer " + token }
-    })
-      .then(res => res.json())
-      .then(setEvidence);
-  }, [id]);
+    const headers = {
+      Authorization: "Bearer " + token
+    };
+
+    try {
+
+      /* ===== CASE DETAILS ===== */
+      const caseRes = await secureFetch(
+        `http://localhost:5000/api/cases/${id}`,
+        { headers }
+      );
+
+      if (caseRes.status === 401 || caseRes.status === 403) {
+        localStorage.clear();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (!caseRes.ok) throw new Error("Case fetch failed");
+
+      const caseJson = await caseRes.json();
+
+      setCaseData({
+        case_number: safeString(caseJson.case_number),
+        case_title: safeString(caseJson.case_title)
+      });
+
+      /* ===== EVIDENCE LIST ===== */
+      const evRes = await secureFetch(
+        `http://localhost:5000/api/evidence/case/${id}`,
+        { headers }
+      );
+
+      if (!evRes.ok) throw new Error("Evidence fetch failed");
+
+      const evJson = await evRes.json();
+
+      const safeEvidence = safeArray(evJson).map(e => ({
+        id: e.id,
+        evidence_code: safeString(e.evidence_code),
+        description: safeString(e.description),
+        category: safeString(e.category),
+        officer_name: safeString(e.officer_name),
+        current_station: safeString(e.current_station),
+        logged_at: e.logged_at
+      }));
+
+      setEvidence(safeEvidence);
+
+    } catch (err) {
+
+      console.error("Case detail load error:", err.message);
+
+      setCaseData(null);
+      setEvidence([]);
+
+    }
+
+  }, [id, navigate]);
 
   useEffect(() => {
-    loadData();
+
+    let mounted = true;
+
+    if (mounted) loadData();
+
+    return () => {
+      mounted = false;
+    };
+
   }, [loadData]);
 
+  /* ---------- LOADING ---------- */
   if (!caseData) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
@@ -49,6 +143,7 @@ export default function CaseDetail() {
     );
   }
 
+  /* ---------- UI ---------- */
   return (
     <div className="flex min-h-screen bg-blue-900 text-slate-100 font-sans antialiased">
 
@@ -100,7 +195,6 @@ export default function CaseDetail() {
               </button>
             </div>
 
-            {/* TABLE */}
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-900/50 text-white uppercase text-xs tracking-wider font-semibold">
@@ -121,7 +215,6 @@ export default function CaseDetail() {
                         key={e.id}
                         onClick={() => setSelectedEvidence(e)}
                         className="hover:bg-slate-700/30 transition-colors cursor-pointer group"
-                        title="Click to view custody actions"
                       >
                         <td className="px-6 py-4 font-mono text-blue-400 font-medium">
                           {e.evidence_code}
@@ -139,16 +232,13 @@ export default function CaseDetail() {
                           {e.current_station}
                         </td>
                         <td className="px-6 py-4 text-white text-right font-mono">
-                          {new Date(e.logged_at).toLocaleDateString("en-GB")}
+                          {safeDate(e.logged_at)}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td
-                        colSpan="6"
-                        className="px-6 py-12 text-center text-white italic"
-                      >
+                      <td colSpan="6" className="px-6 py-12 text-center text-white italic">
                         No evidence has been recorded for this case.
                       </td>
                     </tr>
@@ -156,6 +246,7 @@ export default function CaseDetail() {
                 </tbody>
               </table>
             </div>
+
           </div>
         </main>
       </div>
@@ -175,6 +266,7 @@ export default function CaseDetail() {
           close={() => setSelectedEvidence(null)}
         />
       )}
+
     </div>
   );
 }
