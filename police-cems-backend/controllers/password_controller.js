@@ -5,7 +5,7 @@ const { sendEventEmail } = require("../services/emailService");
 
 /* ================= CONSTANTS ================= */
 
-const RESET_TOKEN_EXPIRY_MINUTES = 15;
+const RESET_TOKEN_EXPIRY_MINUTES = 5;
 const MIN_PASSWORD_LENGTH = 8;
 
 /* ================= HELPERS ================= */
@@ -79,8 +79,9 @@ exports.sendResetLink = async (req, res) => {
       [user.id, tokenHash]
     );
 
-    const resetLink =
-      `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    console.log("Sending reset email to:", user.email);
 
     /* EMAIL SIDE EFFECT */
     sendEventEmail({
@@ -93,7 +94,12 @@ exports.sendResetLink = async (req, res) => {
         userId: user.id
       },
       db: pool
-    }).catch(() => {});
+    })
+    .then(r=> { console.log("reset mail result:", r); })
+    .catch(err => {
+      console.error("🚨 RESET EMAIL FAILED:", err);
+    });
+
 
     return res.status(200).json({
       message: "If account exists, reset link will be sent"
@@ -195,7 +201,10 @@ exports.resetPassword = async (req, res) => {
         userId: user.user_id
       },
       db: pool
-    }).catch(() => {});
+    }).catch(err => {
+      console.error("🚨 RESET EMAIL FAILED:", err);
+    });
+
 
   } catch (err) {
 

@@ -1,5 +1,4 @@
 const express = require("express");
-app.disable("x-powered-by");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
@@ -13,66 +12,53 @@ const transfersRoutes = require("./routes/transfers");
 const dashboardRoutes = require("./routes/dashboard");
 
 /* ================= APP INIT ================= */
-const app = express();
+const app = express();   // 🔥 MUST COME BEFORE app.disable()
 
-/* ================= TRUST PROXY ================= */
-/* Required for rate limiting behind reverse proxy later */
+/* ================= SECURITY ================= */
+app.disable("x-powered-by");   // ✅ NOW SAFE
+
 app.set("trust proxy", 1);
 
-/* ================= SECURITY HEADERS ================= */
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
+app.use(morgan("dev"));
 
-/* ================= REQUEST LOGGING ================= */
-app.use(morgan("combined"));
-
-/* ================= CORS HARDENING ================= */
+/* ================= CORS ================= */
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: (origin, callback) => {
 
-    // Allow server-to-server / Postman / mobile apps
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
+    const cleanOrigin = origin.replace(/\/$/, "");
+
+    if (allowedOrigins.includes(cleanOrigin)) {
       return callback(null, true);
     }
 
+    console.log("❌ Blocked Origin:", origin);
     return callback(new Error("CORS blocked"));
   },
   credentials: true
 }));
 
-/* ================= RATE LIMITING ================= */
+/* ================= RATE LIMIT ================= */
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  max: 300,                 // 300 requests / IP / window
+  windowMs: 15 * 60 * 1000,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false
 });
 
 app.use("/api", apiLimiter);
 
-/* ================= BODY PARSING LIMITS ================= */
-app.use(express.json({
-  limit: "100kb"
-}));
-
-app.use(express.urlencoded({
-  extended: true,
-  limit: "100kb"
-}));
-
-app.use((req, res, next) => {
-  res.setTimeout(15000, () => {
-    res.status(408).json({ error: "Request timeout" });
-  });
-  next();
-});
+/* ================= BODY LIMIT ================= */
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 
 /* ================= ROUTES ================= */
 app.use("/api/auth", authRoutes);
@@ -83,37 +69,30 @@ app.use("/api/evidence", evidenceRoutes);
 app.use("/api/transfers", transfersRoutes);
 app.use("/api/custody", require("./routes/custody"));
 
-/* ================= STATIC FILE SECURITY ================= */
+/* ================= STATIC ================= */
 app.use("/uploads", express.static("uploads", {
   dotfiles: "deny",
   index: false,
   maxAge: "1d"
 }));
 
-/* ================= 404 HANDLER ================= */
+/* ================= 404 ================= */
 app.use((req, res) => {
-  res.status(404).json({
-    error: "Resource not found"
-  });
+  res.status(404).json({ error: "Resource not found" });
 });
 
-/* ================= GLOBAL ERROR HANDLER ================= */
+/* ================= ERROR HANDLER ================= */
 app.use((err, req, res, next) => {
-
   console.error("Global error:", err.message);
 
   if (err.message === "CORS blocked") {
-    return res.status(403).json({
-      error: "Access denied"
-    });
+    return res.status(403).json({ error: "Access denied" });
   }
 
-  res.status(500).json({
-    error: "Internal server error"
-  });
+  res.status(500).json({ error: "Internal server error" });
 });
 
-/* ================= SERVER START ================= */
+/* ================= START ================= */
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

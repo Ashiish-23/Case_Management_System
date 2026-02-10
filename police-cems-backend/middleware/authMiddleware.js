@@ -1,11 +1,9 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = (req, res, next) => {
-
   try {
 
     /* ================= AUTH HEADER VALIDATION ================= */
-
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -18,40 +16,30 @@ module.exports = (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    if (!token || token.length < 20) {
-      return res.status(401).json({ error: "Invalid token" });
+    if (!token || token.length < 10) {
+      return res.status(401).json({ error: "Invalid token provided" });
     }
 
-    /* ================= JWT VERIFY (STRICT) ================= */
+    /* ================= JWT SECRET CHECK ================= */
+    if (!process.env.JWT_SECRET) {
+      console.error("CRITICAL: JWT_SECRET missing");
+      return res.status(500).json({ error: "Server misconfiguration" });
+    }
 
+    /* ================= VERIFY TOKEN ================= */
     const decoded = jwt.verify(token, process.env.JWT_SECRET, {
-      algorithms: ["HS256"] // lock algorithm (prevents downgrade attacks)
+      algorithms: ["HS256"]
     });
 
-    /* ================= PAYLOAD SANITY CHECK ================= */
-
-    if (
-      !decoded ||
-      !decoded.userId ||
-      !decoded.role ||
-      !decoded.email
-    ) {
-      return res.status(401).json({ error: "Invalid token payload" });
-    }
-
-    /* ================= ROLE WHITELIST ================= */
-
-    const allowedRoles = ["admin", "officer"];
-
-    if (!allowedRoles.includes(decoded.role)) {
-      return res.status(403).json({ error: "Access denied" });
+    /* ================= PAYLOAD CHECK ================= */
+    if (!decoded || !decoded.userId || !decoded.email) {
+      return res.status(401).json({ error: "Invalid token payload structure" });
     }
 
     /* ================= SAFE USER CONTEXT ================= */
-
     req.user = Object.freeze({
       userId: decoded.userId,
-      role: decoded.role,
+      role: decoded.role,   // ← FIXED
       name: decoded.name || "Unknown",
       email: decoded.email
     });
@@ -60,20 +48,16 @@ module.exports = (req, res, next) => {
 
   } catch (err) {
 
-    /* ================= SAFE ERROR RESPONSES ================= */
-
     if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Session expired" });
+      return res.status(401).json({ error: "Session expired. Please login again." });
     }
 
     if (err.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token" });
+      return res.status(401).json({ error: "Invalid or malformed token." });
     }
 
-    console.error("Auth middleware error:", err.message);
+    console.error("Auth Middleware Error:", err.message);
 
-    return res.status(401).json({
-      error: "Authentication failed"
-    });
+    return res.status(401).json({ error: "Authentication failed" });
   }
 };

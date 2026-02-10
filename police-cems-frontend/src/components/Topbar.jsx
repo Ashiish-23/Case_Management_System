@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import Dashboard from "../pages/dashboard";
 
 export default function Topbar() {
   const navigate = useNavigate();
@@ -34,15 +33,6 @@ export default function Topbar() {
 
     localStorage.clear();
     navigate("/login");
-  };
-
-  const changePassword = () => {
-    const confirm = window.confirm(
-      "You will be redirected to change your password. Continue?"
-    );
-    if (!confirm) return;
-
-    navigate("/change-password");
   };
 
   return (
@@ -126,7 +116,7 @@ export default function Topbar() {
             </div>
 
             <button
-              onClick={changePassword}
+              onClick={() => navigate("/forgot-password")}
               className="w-full text-left px-3 py-2 rounded hover:bg-slate-700"
             >
               🔑 Change Password
