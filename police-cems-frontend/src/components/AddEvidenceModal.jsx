@@ -172,7 +172,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-      <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+      <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg">
 
         <div className="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
           <h2 className="text-lg font-bold text-white">Add New Evidence</h2>

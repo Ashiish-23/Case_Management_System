@@ -18,10 +18,10 @@ export default function Transfers() {
   }, [ token ]);
 
   return (
-    <div className="p-8 bg-blue-950 text-white min-h-screen">
+    <div className="p-8 bg-blue-950 text-white">
       <h1 className="text-2xl font-bold mb-6 text-white">Transfers</h1>
 
-      <table className="w-full bg-blue-900 rounded-xl overflow-hidden">
+      <table className="w-full bg-blue-900 rounded-xl">
         <thead className="bg-blue-800">
           <tr>
             <th className="p-3 text-left text-white">Evidence</th>

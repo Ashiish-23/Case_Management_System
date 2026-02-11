@@ -63,7 +63,7 @@ export default function EvidenceActionModal({ data, close }) {
       {/* ACTION MODAL */}
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 
-        <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg">
 
           {/* Header */}
           <div className="bg-blue-900/50 px-4 py-4 border-b border-slate-700 flex justify-between items-center">

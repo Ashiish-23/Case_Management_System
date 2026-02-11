@@ -1,18 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-/* ================= SECURITY HELPERS ================= */
-
-async function secureFetch(url, options = {}, timeout = 15000) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    return await fetch(url, { ...options, signal: controller.signal });
-  } finally {
-    clearTimeout(id);
-  }
-}
+/* ================= SAFETY HELPERS ================= */
 
 function safeArray(data) {
   return Array.isArray(data) ? data : [];
@@ -40,72 +29,33 @@ function safeDate(date) {
 
 /* ================= COMPONENT ================= */
 
-export default function CaseTable({ cases: initialCases = [] }) {
+export default function CaseTable({ cases = [], setSearchTerm }) {
 
   const navigate = useNavigate();
-  const [cases, setCases] = useState(safeArray(initialCases));
+  const safeCases = safeArray(cases);
 
-  /* ---------- Sync With Parent ---------- */
-  useEffect(() => {
-    setCases(safeArray(initialCases));
-  }, [initialCases]);
+  const [inputValue, setInputValue] = useState("");
 
-  /* ---------- Authoritative Fetch ---------- */
-  useEffect(() => {
+  /* ===== Trigger search only on submit ===== */
+  function handleSubmit(e) {
+    e.preventDefault();
 
-    let mounted = true;
+    const trimmed = inputValue.trim();
 
-    async function loadCases() {
-
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      try {
-
-        const res = await secureFetch(
-          "http://localhost:5000/api/cases",
-          {
-            headers: { Authorization: "Bearer " + token }
-          }
-        );
-
-        if (res.status === 401 || res.status === 403) {
-          localStorage.clear();
-          window.location.href = "/login";
-          return;
-        }
-
-        if (!res.ok) return;
-
-        const data = await res.json();
-
-        if (mounted && Array.isArray(data)) {
-          setCases(data);
-        }
-
-      } catch (err) {
-
-        if (err.name === "AbortError") {
-          console.warn("Cases fetch timeout");
-        } else {
-          console.error("Cases fetch error:", err);
-        }
-
-      }
+    if (trimmed.length === 0) {
+      setSearchTerm(""); // reset
+      return;
     }
 
-    loadCases();
+    if (trimmed.length < 2) {
+      return; // prevent tiny noisy searches
+    }
 
-    return () => {
-      mounted = false;
-    };
-
-  }, []);
-
-  /* ================= UI ================= */
+    setSearchTerm(trimmed);
+  }
 
   return (
-    <div className="w-full">
+    <div className="w-full rounded-xl shadow-lg border border-slate-700">
 
       {/* Header */}
       <div className="px-6 py-4 border-b border-slate-700/50 bg-slate-800/50 flex justify-between items-center">
@@ -113,9 +63,22 @@ export default function CaseTable({ cases: initialCases = [] }) {
           Registered Case Records
         </h3>
 
-        <span className="text-xs text-white uppercase tracking-wider font-medium">
-          Total Cases: {cases.length}
-        </span>
+        <form onSubmit={handleSubmit} className="flex items-center">
+          <input
+            type="text"
+            placeholder="Search case number, title, category..."
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            className="bg-slate-800 border border-slate-600 px-4 py-2 rounded-lg text-sm text-white w-72 focus:outline-none focus:border-blue-500"
+          />
+
+          <button
+            type="submit"
+            className="ml-2 px-4 py-2 bg-blue-600 rounded-lg text-sm text-white hover:bg-blue-700"
+          >
+            Search
+          </button>
+        </form>
       </div>
 
       {/* Table */}
@@ -135,9 +98,8 @@ export default function CaseTable({ cases: initialCases = [] }) {
 
           <tbody className="divide-y divide-slate-700/50 text-sm">
 
-            {cases.length > 0 ? (
-
-              cases.map(c => {
+            {safeCases.length > 0 ? (
+              safeCases.map(c => {
 
                 const safeId = safeText(c?.id, 64);
                 const caseNumber = safeText(c?.case_number, 50);
@@ -172,7 +134,6 @@ export default function CaseTable({ cases: initialCases = [] }) {
                 );
 
               })
-
             ) : (
               <tr>
                 <td colSpan="4" className="px-6 py-12 text-center text-white italic">

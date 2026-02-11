@@ -37,7 +37,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       
       {/* Modal Box: Slate Theme, Rounded, Shadow */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden relative animate-[fadeIn_0.2s_ease-out]">
+      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg relative animate-[fadeIn_0.2s_ease-out]">
         
         {/* Header */}
         <div className="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex justify-between items-center">

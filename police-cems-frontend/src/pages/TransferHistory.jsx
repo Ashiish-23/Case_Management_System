@@ -41,7 +41,7 @@ export default function TransferHistory() {
   }, [evidenceId, token]);
 
   return (
-    <div className="min-h-screen bg-blue-900">
+    <div className="bg-blue-900">
       <Topbar />
 
       <div className="max-w-[95rem] mx-auto px-6 py-8 pb-10 text-white">
@@ -60,7 +60,7 @@ export default function TransferHistory() {
           Complete chain of custody for this evidence
         </p>
 
-        <div className="bg-blue-800/70 border border-blue-700 rounded-xl overflow-hidden">
+        <div className="bg-blue-800/70 border border-blue-700 rounded-xl">
           {loading ? (
             <div className="p-8 text-center text-blue-200">
               Loading history…

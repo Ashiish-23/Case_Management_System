@@ -5,7 +5,7 @@ import Topbar from "../components/Topbar";
 import MarqueeStats from "../components/MarqueeStats";
 import CaseTable from "./CaseList";
 
-/* ================= SECURITY HELPERS ================= */
+/* ================= HELPERS ================= */
 
 function safeInt(v) {
   const n = Number(v);
@@ -14,16 +14,11 @@ function safeInt(v) {
 }
 
 async function secureFetch(url, options = {}, timeout = 10000) {
-
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const res = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    return res;
+    return await fetch(url, { ...options, signal: controller.signal });
   } finally {
     clearTimeout(id);
   }
@@ -35,11 +30,12 @@ export default function Dashboard() {
 
   const [stats, setStats] = useState([]);
   const [cases, setCases] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  /* ================= INITIAL LOAD (STATS) ================= */
 
-    let mounted = true;
+  useEffect(() => {
 
     const token = localStorage.getItem("token");
 
@@ -48,78 +44,94 @@ export default function Dashboard() {
       return;
     }
 
-    const headers = {
-      Authorization: "Bearer " + token
-    };
+    const headers = { Authorization: "Bearer " + token };
 
-    async function loadDashboard() {
-
+    async function loadStats() {
       try {
-
-        /* ===== STATS ===== */
-        const statsRes = await secureFetch(
+        const res = await secureFetch(
           "http://localhost:5000/api/dashboard/stats",
           { headers }
         );
 
-        if (statsRes.status === 401 || statsRes.status === 403) {
+        if (res.status === 401 || res.status === 403) {
           localStorage.clear();
           navigate("/login", { replace: true });
           return;
         }
 
-        const statsData = await statsRes.json();
+        const data = await res.json();
 
-        if (mounted && statsData) {
-          setStats([
-            { label: "Total Cases", value: safeInt(statsData.totalCases) },
-            { label: "Evidence Items", value: safeInt(statsData.evidenceItems) },
-            { label: "Transfers", value: safeInt(statsData.transfers) }
-          ]);
-        }
-
-        /* ===== CASE LIST ===== */
-        const caseRes = await secureFetch(
-          "http://localhost:5000/api/cases?limit=50",
-          { headers }
-        );
-
-        if (!caseRes.ok) throw new Error("Cases load failed");
-
-        const caseData = await caseRes.json();
-
-        if (mounted && Array.isArray(caseData)) {
-          setCases(caseData);
-        }
+        setStats([
+          { label: "Total Cases", value: safeInt(data.totalCases) },
+          { label: "Evidence Items", value: safeInt(data.evidenceItems) },
+          { label: "Transfers", value: safeInt(data.transfers) }
+        ]);
 
       } catch (err) {
-
-        console.error("Dashboard load error:", err.message);
-
-        if (mounted) {
-          setCases([]);
-          setStats([]);
-        }
-
-      } finally {
-        if (mounted) setLoading(false);
+        console.error("Stats load error:", err.message);
       }
     }
 
-    loadDashboard();
-
-    return () => {
-      mounted = false;
-    };
+    loadStats();
 
   }, [navigate]);
 
+  /* ================= CASE FETCH (WITH SEARCH) ================= */
+
+  useEffect(() => {
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const headers = { Authorization: "Bearer " + token };
+
+    const delay = setTimeout(async () => {
+
+      try {
+
+        setLoading(true);
+
+        const res = await secureFetch(
+          `http://localhost:5000/api/cases?limit=50&search=${encodeURIComponent(searchTerm)}`,
+          { headers }
+        );
+
+        if (res.status === 401 || res.status === 403) {
+          localStorage.clear();
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        if (!res.ok) throw new Error("Cases load failed");
+
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          setCases(data);
+        }
+
+      } catch (err) {
+        console.error("Cases load error:", err.message);
+        setCases([]);
+      } finally {
+        setLoading(false);
+      }
+
+    }, 400); // debounce
+
+    return () => clearTimeout(delay);
+
+  }, [searchTerm, navigate]);
+
+  /* ================= UI ================= */
+
   return (
-    <div className="min-h-screen bg-blue-900 text-slate-100">
+    <div className="bg-blue-900 text-slate-100 min-h-screen flex flex-col">
 
       <Topbar />
 
-      <main className="pt-6 px-4 md:px-8 max-w-screen-2xl mx-auto">
+      <main className="flex-grow pt-6 px-4 md:px-8 max-w-screen-2xl mx-auto w-full">
+
 
         <div className="mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-white">
@@ -130,7 +142,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="mb-8 bg-blue-700/50 border border-slate-700 rounded-xl overflow-hidden">
+        <div className="mb-8 bg-blue-700/50 border border-slate-700 rounded-xl">
           <MarqueeStats stats={stats} />
         </div>
 
@@ -140,8 +152,11 @@ export default function Dashboard() {
             <p className="text-white">Loading secure case records…</p>
           </div>
         ) : (
-          <div className="bg-blue-900/50 border border-slate-700 rounded-xl shadow-xl overflow-hidden">
-            <CaseTable cases={cases} />
+          <div className="bg-blue-900/50 border border-slate-700 rounded-xl shadow-xl">
+            <CaseTable
+              cases={cases}
+              setSearchTerm={setSearchTerm}
+            />
           </div>
         )}
 

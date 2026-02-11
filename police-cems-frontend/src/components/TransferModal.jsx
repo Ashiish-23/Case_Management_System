@@ -133,7 +133,7 @@ export default function TransferModal({ evidence, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-      <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+      <div className="bg-blue-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg">
 
         <div className="px-6 py-4 border-b border-blue-600 flex justify-between">
           <h3 className="text-white font-bold">New Transfer</h3>

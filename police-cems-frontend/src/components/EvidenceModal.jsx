@@ -70,7 +70,7 @@ export default function EvidenceModal({ data, close }) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
 
-      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg relative overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl w-full max-w-lg relative flex flex-col max-h-[90vh]">
 
         {/* HEADER */}
         <div className="bg-zinc-950/50 px-6 py-4 border-b border-slate-700 flex justify-between items-center shrink-0">
@@ -139,7 +139,7 @@ export default function EvidenceModal({ data, close }) {
           {safeImageUrl && (
             <div>
               <label className={labelStyle}>Attached Visual Proof</label>
-              <div className="mt-1 rounded-lg border border-slate-700 overflow-hidden bg-black/40 p-1">
+              <div className="mt-1 rounded-lg border border-slate-700 bg-black/40 p-1">
                 <img
                   src={safeImageUrl}
                   alt="Evidence Proof"

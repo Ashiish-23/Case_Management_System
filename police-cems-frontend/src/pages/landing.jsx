@@ -6,10 +6,10 @@ export default function Landing() {
 
   return (
     // Main Wrapper
-    <div className="min-h-screen bg-blue-900 text-slate-100 font-sans flex flex-col selection:bg-blue-500 selection:text-white">
+    <div className="bg-blue-900 text-slate-100 font-sans flex flex-col selection:bg-blue-500 selection:text-white">
       
       {/* BACKGROUND ACCENTS */}
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-3xl opacity-50"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl opacity-50"></div>
       </div>

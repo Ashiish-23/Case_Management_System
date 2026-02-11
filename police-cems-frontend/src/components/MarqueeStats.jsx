@@ -20,7 +20,7 @@ export default function MarqueeStats({ stats }) {
   const loopStats = [...filteredStats, ...filteredStats, ...filteredStats];
 
   return (
-    <div className="relative w-full overflow-hidden bg-slate-900/80 border-b border-slate-700/50 backdrop-blur-md">
+    <div className="relative w-full overflow-hidden bg-slate-900/80 border-b rounded-xl border-slate-700/50 backdrop-blur-md">
 
       <style>{`
         @keyframes marquee-scroll {

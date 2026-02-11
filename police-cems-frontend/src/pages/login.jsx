@@ -87,7 +87,7 @@ export default function Login() {
     "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
 
   return (
-    <div className="min-h-screen bg-blue-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="bg-blue-900 flex items-center justify-center p-4 relative">
 
       {/* Ambient glow */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
