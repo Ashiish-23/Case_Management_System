@@ -19,9 +19,7 @@ export default function Login() {
   /* ================= HARD RESET ON LOAD ================= */
   useEffect(() => {
     // Prevent stale tokens from breaking auth flow
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userId");
+    sessionStorage.clear();
   }, []);
 
   const handleChange = (e) => {
@@ -63,16 +61,15 @@ export default function Login() {
       }
 
       /* ================= SAFE STORAGE ================= */
-      localStorage.setItem("token", data.token);
+      sessionStorage.setItem("token", data.token);
 
       if (data.user?.role) {
-        localStorage.setItem("userRole", data.user.role);
+        sessionStorage.setItem("userRole", data.user.role);
       }
 
       if (data.user?.id) {
-        localStorage.setItem("userId", data.user.id);
+        sessionStorage.setItem("userId", data.user.id);
       }
-
       navigate("/dashboard", { replace: true });
 
     } catch (err) {
@@ -87,7 +84,7 @@ export default function Login() {
     "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
 
   return (
-    <div className="bg-blue-900 flex items-center justify-center p-4 relative">
+    <div className="bg-blue-900 flex items-center min-h-screen justify-center p-4 relative">
 
       {/* Ambient glow */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />

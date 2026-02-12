@@ -1,15 +1,14 @@
-// Public landing page with product overview and CTA.
 import { Link } from "react-router-dom";
 
 export default function Landing() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   return (
     // Main Wrapper
-    <div className="bg-blue-900 text-slate-100 font-sans flex flex-col selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen bg-blue-900 text-slate-100 font-sans flex flex-col selection:bg-blue-500 selection:text-white">
       
       {/* BACKGROUND ACCENTS */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/20 rounded-full blur-3xl opacity-50"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl opacity-50"></div>
       </div>
@@ -26,7 +25,7 @@ export default function Landing() {
         <div className="flex items-center gap-4">
           {user ? (
             <>
-              <span className="hidden md:block text-white text-sm">
+              <span className="hidden md:block text-slate-400 text-sm">
                 Officer: <span className="text-white font-medium">{user.name}</span>
               </span>
               <Link 
@@ -67,7 +66,7 @@ export default function Landing() {
             Secure • Tamper-Evident • Court-Admissible
           </p>
 
-          <p className="text-lg text-white max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
             A centralized, high-security Case & Evidence Management System
             designed exclusively for law-enforcement agencies.
             Every action is logged, verified, and preserved.
@@ -77,14 +76,14 @@ export default function Landing() {
             {user ? (
               <Link 
                 to="/dashboard" 
-                className="bg-gradient-to-r from-slate-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-lg font-bold py-4 px-10 rounded-xl shadow-xl shadow-blue-900/50 transition-all hover:scale-105 inline-block"
+                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-lg font-bold py-4 px-10 rounded-xl shadow-xl shadow-blue-900/50 transition-all hover:scale-105 inline-block"
               >
                 Go to Console
               </Link>
             ) : (
               <Link 
                 to="/login" 
-                className="bg-blue-600 text-white hover:bg-blue-700/50 text-lg font-bold py-4 px-10 rounded-xl shadow-xl shadow-blue-900/20 transition-all hover:scale-105 inline-block"
+                className="bg-blue-600 text-white hover:bg-blue-700 text-lg font-bold py-4 px-10 rounded-xl shadow-xl shadow-blue-900/20 transition-all hover:scale-105 inline-block"
               >
                 Access Secure Portal
               </Link>
@@ -101,7 +100,7 @@ export default function Landing() {
           <div className="bg-blue-800/40 border border-blue-700/30 p-6 rounded-2xl hover:bg-blue-800/60 transition-colors">
             <div className="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center text-2xl mb-4 text-blue-200">🔒</div>
             <h3 className="text-xl font-bold text-white mb-2">High-Assurance Security</h3>
-            <p className="text-white text-sm leading-relaxed">
+            <p className="text-slate-300 text-sm leading-relaxed">
               Role-based access, cryptographic hashing, and strict audit controls protect all case data from unauthorized access.
             </p>
           </div>
@@ -110,7 +109,7 @@ export default function Landing() {
           <div className="bg-blue-800/40 border border-blue-700/30 p-6 rounded-2xl hover:bg-blue-800/60 transition-colors">
             <div className="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center text-2xl mb-4 text-blue-200">🧾</div>
             <h3 className="text-xl font-bold text-white mb-2">Immutable Evidence Logs</h3>
-            <p className="text-white text-sm leading-relaxed">
+            <p className="text-slate-300 text-sm leading-relaxed">
               Every evidence movement is recorded with hash chaining, creating a tamper-evident chain of custody.
             </p>
           </div>
@@ -119,7 +118,7 @@ export default function Landing() {
           <div className="bg-blue-800/40 border border-blue-700/30 p-6 rounded-2xl hover:bg-blue-800/60 transition-colors">
             <div className="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center text-2xl mb-4 text-blue-200">⚖️</div>
             <h3 className="text-xl font-bold text-white mb-2">Court-Ready Reports</h3>
-            <p className="text-white text-sm leading-relaxed">
+            <p className="text-slate-300 text-sm leading-relaxed">
               Generate standardized, legally compliant reports with full movement history and officer accountability.
             </p>
           </div>
@@ -129,8 +128,8 @@ export default function Landing() {
 
       {/* FOOTER */}
       <footer className="relative z-10 border-t border-blue-800/30 bg-slate-900/50 py-8 text-center">
-        <p className="text-white text-sm">
-          © {new Date().getFullYear()} Police Department • <span className="text-white">Authorized Personnel Only</span>
+        <p className="text-slate-400 text-sm">
+          © {new Date().getFullYear()} Police Department • <span className="text-slate-500">Authorized Personnel Only</span>
         </p>
       </footer>
 

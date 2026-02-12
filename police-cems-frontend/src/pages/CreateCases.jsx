@@ -36,7 +36,7 @@ export default function CreateCase() {
 
     if (loading) return;
 
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     if (!token) {
       alert("Session expired. Please login again.");
@@ -103,7 +103,7 @@ export default function CreateCase() {
       /* ---------- SESSION CHECK ---------- */
       if (res.status === 401 || res.status === 403) {
         alert("Session expired. Please login again.");
-        localStorage.clear();
+        sessionStorage.clear();
         navigate("/login");
         return;
       }

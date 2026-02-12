@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 
 import AddEvidenceModal from "../components/AddEvidenceModal";
 import EvidenceActionModal from "../components/EvidenceActionModal";
-import Topbar from "../components/Topbar";
 
 /* ================= SECURITY HELPERS ================= */
 
@@ -52,7 +51,7 @@ export default function CaseDetail() {
   /* ---------- LOAD DATA ---------- */
   const loadData = useCallback(async () => {
 
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     if (!token) {
       navigate("/login", { replace: true });
@@ -72,12 +71,20 @@ export default function CaseDetail() {
       );
 
       if (caseRes.status === 401 || caseRes.status === 403) {
-        localStorage.clear();
+        sessionStorage.clear();
         navigate("/login", { replace: true });
         return;
       }
 
-      if (!caseRes.ok) throw new Error("Case fetch failed");
+      if (caseRes.status === 404) {
+        console.warn("Case not found — redirecting");
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+      
+      if (!caseRes.ok) {
+        throw new Error("Case fetch failed");
+      }
 
       const caseJson = await caseRes.json();
 
@@ -148,7 +155,6 @@ export default function CaseDetail() {
     <div className="flex min-h-screen bg-blue-900 text-slate-100 font-sans antialiased">
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Topbar />
 
         <main className="flex-1 overflow-y-auto p-8">
 

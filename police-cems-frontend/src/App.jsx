@@ -8,95 +8,88 @@ import ResetPassword from "./pages/resetpassword";
 import Dashboard from "./pages/dashboard";
 import CreateCase from "./pages/CreateCases";
 import CaseDetail from "./pages/CaseDetail";
-import Topbar from "./components/Topbar";
 import TransferHistory from "./pages/TransferHistory";
+import Layout from "./components/Layout";
 
-/* ================= AUTH GUARD ================= */
+/* ================= TOKEN CHECK ================= */
+
+function isTokenValid() {
+  const token = sessionStorage.getItem("token");
+  return !!token;
+}
+
+/* ================= PROTECTED ROUTE ================= */
 
 function ProtectedRoute({ children }) {
-
-  const token = localStorage.getItem("token");
-
-  if (!token) {
+  if (!isTokenValid()) {
+    sessionStorage.clear();
     return <Navigate to="/login" replace />;
   }
-
   return children;
 }
 
-/* ================= PUBLIC ROUTE GUARD ================= */
-/* Prevent logged-in users from opening login/register */
+/* ================= PUBLIC ROUTE ================= */
 
 function PublicOnlyRoute({ children }) {
-
-  const token = localStorage.getItem("token");
-
-  if (token) {
+  if (isTokenValid()) {
     return <Navigate to="/dashboard" replace />;
   }
-
   return children;
 }
 
-/* ================= APP ROUTING ================= */
-
 export default function App() {
-
   return (
     <BrowserRouter>
       <Routes>
 
         {/* PUBLIC */}
         <Route path="/" element={<Landing />} />
-
         <Route path="/register" element={
           <PublicOnlyRoute>
             <Register />
           </PublicOnlyRoute>
         } />
-
         <Route path="/login" element={
           <PublicOnlyRoute>
             <Login />
           </PublicOnlyRoute>
         } />
-
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* PROTECTED */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <Dashboard />
+            <Layout>
+              <Dashboard />
+            </Layout>
           </ProtectedRoute>
         } />
 
         <Route path="/cases/create" element={
           <ProtectedRoute>
-            <CreateCase />
+            <Layout>
+              <CreateCase />
+            </Layout>
           </ProtectedRoute>
         } />
 
         <Route path="/case/:id" element={
           <ProtectedRoute>
-            <CaseDetail />
+            <Layout>
+              <CaseDetail />
+            </Layout>
           </ProtectedRoute>
         } />
 
         <Route path="/transfers/history/:evidenceId" element={
           <ProtectedRoute>
-            <TransferHistory />
+            <Layout>
+              <TransferHistory />
+            </Layout>
           </ProtectedRoute>
         } />
 
-        {/* OPTIONAL — REMOVE IF NOT NEEDED */}
-        <Route path="/topbar" element={
-          <ProtectedRoute>
-            <Topbar />
-          </ProtectedRoute>
-        } />
-
-        {/* FALLBACK */}
         <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>

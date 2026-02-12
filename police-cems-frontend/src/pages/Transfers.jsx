@@ -6,7 +6,7 @@ import TransferHistory from "./TransferHistory";
 export default function Transfers() {
   const [items, setItems] = useState([]);
   const [selectedEvidence, setSelectedEvidence] = useState(null);
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   const navigate = useNavigate();
 
   useEffect(() => {

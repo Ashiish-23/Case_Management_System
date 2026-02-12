@@ -76,7 +76,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
       return;
     }
 
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (!token) {
       alert("Session expired. Please login again.");
       return;
@@ -113,7 +113,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
       }
 
       if (res.status === 401 || res.status === 403) {
-        localStorage.clear();
+        sessionStorage.clear();
         alert("Session expired. Please login again.");
         return;
       }

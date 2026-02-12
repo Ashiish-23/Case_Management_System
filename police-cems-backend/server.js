@@ -10,6 +10,7 @@ const authRoutes = require("./routes/auth");
 const evidenceRoutes = require("./routes/evidence");
 const transfersRoutes = require("./routes/transfers");
 const dashboardRoutes = require("./routes/dashboard");
+const { login } = require("./controllers/authController");
 
 /* ================= APP INIT ================= */
 const app = express();   // 🔥 MUST COME BEFORE app.disable()

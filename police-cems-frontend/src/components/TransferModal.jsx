@@ -23,7 +23,7 @@ export default function TransferModal({ evidence, onClose }) {
     if (loading) return; // 🚫 double submit guard
 
     /* ---------- AUTH CHECK ---------- */
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (!token) {
       alert("Session expired. Please login again.");
       return;
@@ -89,7 +89,7 @@ export default function TransferModal({ evidence, onClose }) {
       /* ---------- SESSION HANDLING ---------- */
       if (res.status === 401 || res.status === 403) {
         alert("Session expired. Please login again.");
-        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = "/login";
         return;
       }

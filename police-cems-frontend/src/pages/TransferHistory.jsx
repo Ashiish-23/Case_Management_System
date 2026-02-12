@@ -1,7 +1,6 @@
 // Transfer history page for a specific evidence item.
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Topbar from "../components/Topbar";
 
 export default function TransferHistory() {
   const { evidenceId } = useParams();
@@ -11,7 +10,7 @@ export default function TransferHistory() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
 
   useEffect(() => {
     if (!evidenceId) return;
@@ -41,8 +40,7 @@ export default function TransferHistory() {
   }, [evidenceId, token]);
 
   return (
-    <div className="bg-blue-900">
-      <Topbar />
+    <div className="bg-blue-900 min-h-screen text-white flex flex-col">
 
       <div className="max-w-[95rem] mx-auto px-6 py-8 pb-10 text-white">
         {/* BACK BUTTON */}

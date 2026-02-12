@@ -11,7 +11,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
   const submit = async e => {
     e.preventDefault();
 
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     const form = new FormData();
     form.append("caseId", caseId);
