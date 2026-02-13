@@ -78,7 +78,8 @@ export default function Dashboard() {
           { label: "Transfers", value: safeInt(data.transfers) }
         ]);
 
-      } catch (err) {
+      }
+      catch (err) {
 
         console.error("Stats load error:", err.message);
 
@@ -90,7 +91,7 @@ export default function Dashboard() {
 
   }, [navigate]);
 
-  /* ================= LOAD CASES WITH PAGINATION ================= */
+  /* ================= LOAD CASES ================= */
 
   useEffect(() => {
 
@@ -121,21 +122,22 @@ export default function Dashboard() {
 
         }
 
-        if (!res.ok) {
+        if (!res.ok)
           throw new Error("Cases load failed");
-        }
 
         const result = await res.json();
 
         setCases(result.data || []);
         setTotalPages(result.totalPages || 1);
 
-      } catch (err) {
+      }
+      catch (err) {
 
         console.error("Cases load error:", err.message);
         setCases([]);
 
-      } finally {
+      }
+      finally {
 
         setLoading(false);
 
@@ -147,7 +149,7 @@ export default function Dashboard() {
 
   }, [searchTerm, page, navigate]);
 
-  /* ===== RESET PAGE WHEN SEARCH CHANGES ===== */
+  /* ===== RESET PAGE ON SEARCH ===== */
 
   useEffect(() => {
     setPage(1);
@@ -176,9 +178,7 @@ export default function Dashboard() {
       {/* STATS */}
 
       <div className="mb-8 bg-blue-700/50 border border-slate-700 rounded-xl">
-
         <MarqueeStats stats={stats} />
-
       </div>
 
       {/* CASE TABLE */}
@@ -186,48 +186,53 @@ export default function Dashboard() {
       {loading ? (
 
         <div className="flex flex-col items-center justify-center py-24">
-
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-
-          <p className="text-white">
-            Loading secure case records…
-          </p>
-
+          <p className="text-white">Loading secure case records…</p>
         </div>
 
       ) : (
 
         <div className="bg-blue-900/50 border border-slate-700 rounded-xl shadow-xl">
-
           <CaseTable
             cases={cases}
             setSearchTerm={setSearchTerm}
           />
-
         </div>
 
       )}
 
       {/* PAGINATION */}
 
-      <div className="flex justify-center items-center gap-4 mt-6 mb-10">
+      <div className="flex justify-center items-center gap-2 mt-6">
 
         <button
           disabled={page === 1}
           onClick={() => setPage(page - 1)}
-          className="px-4 py-2 bg-slate-800 rounded text-white disabled:opacity-40 hover:bg-slate-700"
+          className="px-4 py-2 bg-slate-700 text-white rounded disabled:opacity-40"
         >
           Previous
         </button>
 
-        <span className="text-white font-medium">
-          Page {page} of {totalPages}
-        </span>
+        {[...Array(totalPages)].map((_, i) => (
+
+          <button
+            key={i}
+            onClick={() => setPage(i + 1)}
+            className={`px-3 py-2 rounded text-white ${
+              page === i + 1
+                ? "bg-blue-600"
+                : "bg-slate-700"
+            }`}
+          >
+            {i + 1}
+          </button>
+
+        ))}
 
         <button
           disabled={page === totalPages}
           onClick={() => setPage(page + 1)}
-          className="px-4 py-2 bg-slate-800 rounded text-white disabled:opacity-40 hover:bg-slate-700"
+          className="px-4 py-2 bg-slate-700 text-white rounded disabled:opacity-40"
         >
           Next
         </button>

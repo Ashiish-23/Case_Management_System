@@ -44,7 +44,7 @@ export default function Layout({ children }) {
 
       {/* ===== HEADER ===== */}
 
-      <header className="h-20 pb-4 flex items-center justify-between px-6 bg-slate-900 border-b border-slate-700 relative">
+      <header className="h-20 pb-6 flex items-center justify-between px-6 bg-slate-900 border-b border-slate-700 relative">
 
         {/* LEFT LOGO */}
         <div
@@ -111,7 +111,7 @@ export default function Layout({ children }) {
               <button
                 className="block w-full text-left px-4 py-3 opacity-50 cursor-not-allowed"
               >
-                🔗 Blockchain (Coming Soon)
+                🔗 Blockchain
               </button>
 
             </div>
@@ -156,7 +156,7 @@ export default function Layout({ children }) {
 
       {/* ===== PAGE CONTENT ===== */}
 
-      <main className="flex-1 pb-16">
+      <main className="flex-1 pb-8">
         {children}
       </main>
 
