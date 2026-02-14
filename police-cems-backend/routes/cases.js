@@ -24,14 +24,27 @@ function cleanText(str, maxLen) {
 
 async function generateCaseNumber(client) {
 
+  // Sync sequence automatically with table
+  await client.query(`
+    SELECT setval(
+      'case_number_seq',
+      (
+        SELECT COALESCE(
+          MAX(CAST(SUBSTRING(case_number FROM '[0-9]+$') AS INTEGER)),
+          0
+        )
+        FROM cases
+      )
+    )
+  `);
+
   const seqRes = await client.query(
     `SELECT nextval('case_number_seq') AS seq`
   );
 
   const seq = seqRes.rows[0].seq;
 
-  return `KSP-${new Date().getFullYear()}-${String(seq).padStart(6,"0")}`;
-
+  return `KSP-${new Date().getFullYear()}-${String(seq).padStart(6, "0")}`;
 }
 
 /* =========================================================
