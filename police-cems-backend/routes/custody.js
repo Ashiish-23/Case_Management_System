@@ -4,7 +4,6 @@ const pool = require("../db");
 const auth = require("../middleware/authMiddleware");
 
 /* ================= SECURITY HELPERS ================= */
-
 function isValidUUID(id) {
   return /^[0-9a-fA-F-]{36}$/.test(id);
 }
@@ -18,13 +17,9 @@ function delay(ms) {
   GET CURRENT CUSTODY BY EVIDENCE ID
   Security Level: HIGH (Operational Sensitive)
 */
-
 router.get("/:evidenceId", auth, async (req, res) => {
-
   const startTime = Date.now();
-
   try {
-
     const evidenceId = req.params.evidenceId;
 
     /* ===== UUID VALIDATION ===== */
@@ -58,7 +53,6 @@ router.get("/:evidenceId", auth, async (req, res) => {
       if (elapsed < 120) {
         await delay(120 - elapsed);
       }
-
       return res.status(404).json({
         error: "Custody record not found"
       });
@@ -72,15 +66,12 @@ router.get("/:evidenceId", auth, async (req, res) => {
       currentStation: result.rows[0].current_station,
       currentHolderId: result.rows[0].current_holder_id
     });
-
   } catch (err) {
 
     console.error("Custody fetch error:", err.message);
-
     res.status(500).json({
       error: "Failed to fetch custody"
     });
-
   }
 });
 

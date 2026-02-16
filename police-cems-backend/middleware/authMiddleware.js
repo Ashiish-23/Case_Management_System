@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 
 module.exports = (req, res, next) => {
   try {
-
     /* ================= AUTH HEADER VALIDATION ================= */
     const authHeader = req.headers.authorization;
 
@@ -43,9 +42,7 @@ module.exports = (req, res, next) => {
       name: decoded.name || "Unknown",
       email: decoded.email
     });
-
     next();
-
   } catch (err) {
 
     if (err.name === "TokenExpiredError") {

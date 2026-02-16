@@ -10,6 +10,7 @@ import CreateCase from "./pages/CreateCases";
 import CaseDetail from "./pages/CaseDetail";
 import TransferHistory from "./pages/TransferHistory";
 import Layout from "./components/Layout";
+import AdminDashboard from "./pages/AdminDashboard";
 
 /* ================= TOKEN CHECK ================= */
 
@@ -89,6 +90,14 @@ export default function App() {
             </Layout>
           </ProtectedRoute>
         } />
+
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <Layout>
+              <AdminDashboard />
+            </Layout>
+          </ProtectedRoute>
+        }/>
 
         <Route path="*" element={<Navigate to="/" replace />} />
 

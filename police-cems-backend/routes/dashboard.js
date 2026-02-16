@@ -4,27 +4,20 @@ const pool = require("../db");
 const auth = require("../middleware/authMiddleware");
 
 /* ================= SECURITY HELPERS ================= */
-
 function safeInt(value) {
   const n = Number(value);
   if (!Number.isFinite(n) || n < 0) return 0;
   return Math.floor(n);
 }
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 /* =========================================================
    DASHBOARD STATS (LEDGER FACTS ONLY — HARDENED)
 ========================================================= */
-
 router.get("/stats", auth, async (req, res) => {
-
   const startTime = Date.now();
-
   try {
-
     const result = await pool.query(`
       SELECT
         (SELECT COUNT(*) FROM cases)               AS total_cases,
@@ -40,7 +33,6 @@ router.get("/stats", auth, async (req, res) => {
       evidenceItems: safeInt(row.total_evidence),
       transfers: safeInt(row.total_transfers),
       custodyRecords: safeInt(row.custody_records),
-
       /* Reserved for future tamper detection engine */
       chainViolations: 0
     };
@@ -50,15 +42,10 @@ router.get("/stats", auth, async (req, res) => {
     if (elapsed < 120) {
       await delay(120 - elapsed);
     }
-
     res.json(responsePayload);
-
   } catch (err) {
-
     console.error("Dashboard stats error:", err.message);
-
     await delay(120); // keep timing consistent
-
     res.status(500).json({
       error: "Dashboard stats failed"
     });

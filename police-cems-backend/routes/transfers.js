@@ -5,11 +5,9 @@ const auth = require("../middleware/authMiddleware");
 const { sendEventEmail } = require("../services/emailService");
 
 /* ================= CONSTANTS ================= */
-
 const MAX_REASON_LENGTH = 500;
 
 /* ================= HELPERS ================= */
-
 function normalizeString(str) {
   return str.trim().toLowerCase();
 }
@@ -36,7 +34,6 @@ router.post("/create", auth, async (req, res) => {
     } = req.body;
 
     /* ---------- STRICT VALIDATION ---------- */
-
     if (
       !evidenceId ||
       typeof toStation !== "string" ||
@@ -81,10 +78,7 @@ router.post("/create", auth, async (req, res) => {
     evidenceCode = evRes.rows[0].evidence_code;
 
     /* ---------- LOCK CUSTODY ---------- */
-    const custodyRes = await client.query(
-      `SELECT * FROM evidence_custody WHERE evidence_id = $1 FOR UPDATE`,
-      [evidenceId]
-    );
+    const custodyRes = await client.query( `SELECT * FROM evidence_custody WHERE evidence_id = $1 FOR UPDATE`, [evidenceId] );
 
     if (!custodyRes.rows.length) {
       throw new Error("CUSTODY_NOT_FOUND");
@@ -120,10 +114,7 @@ router.post("/create", auth, async (req, res) => {
       throw new Error("SAME_OFFICER_TRANSFER");
     }
 
-    if (
-      normalizeString(custody.current_station) ===
-      normalizeString(toStationTrim)
-    ) {
+    if ( normalizeString(custody.current_station) === normalizeString(toStationTrim)) {
       throw new Error("SAME_STATION_TRANSFER");
     }
 
@@ -177,31 +168,22 @@ router.post("/create", auth, async (req, res) => {
 
   } catch (err) {
     await client.query("ROLLBACK");
-
     console.error("TRANSFER DB FAILED:", err.message);
 
     /* ⭐ SAFE ERROR MAPPING */
-
     if (err.message === "NOT_CUSTODY_HOLDER") {
       return res.status(403).json({ error: "You are not custody holder" });
     }
 
-    if (
-      err.message === "SAME_OFFICER_TRANSFER" ||
-      err.message === "SAME_STATION_TRANSFER"
-    ) {
+    if ( err.message === "SAME_OFFICER_TRANSFER" || err.message === "SAME_STATION_TRANSFER") {
       return res.status(400).json({ error: "Invalid transfer request" });
     }
 
-    if (
-      err.message === "EVIDENCE_NOT_FOUND" ||
-      err.message === "CUSTODY_NOT_FOUND"
-    ) {
+    if ( err.message === "EVIDENCE_NOT_FOUND" || err.message === "CUSTODY_NOT_FOUND" ) {
       return res.status(404).json({ error: "Evidence record not found" });
     }
 
     return res.status(500).json({ error: "Transfer failed" });
-
   } finally {
     client.release();
   }

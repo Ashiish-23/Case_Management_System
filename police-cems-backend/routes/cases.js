@@ -6,9 +6,7 @@ const auth = require("../middleware/authMiddleware");
 
 /* ================= HELPERS ================= */
 
-function isValidUUID(id) {
-  return /^[0-9a-fA-F-]{36}$/.test(id);
-}
+function isValidUUID(id) { return /^[0-9a-fA-F-]{36}$/.test(id); }
 
 function cleanText(str, maxLen) {
 
@@ -19,7 +17,6 @@ function cleanText(str, maxLen) {
     .trim()
     .normalize("NFKC")
     .substring(0, maxLen);
-
 }
 
 async function generateCaseNumber(client) {
@@ -38,9 +35,7 @@ async function generateCaseNumber(client) {
     )
   `);
 
-  const seqRes = await client.query(
-    `SELECT nextval('case_number_seq') AS seq`
-  );
+  const seqRes = await client.query( `SELECT nextval('case_number_seq') AS seq` );
 
   const seq = seqRes.rows[0].seq;
 
@@ -134,7 +129,6 @@ router.post("/create", auth, async (req, res) => {
 router.get("/", auth, async (req,res)=>{
 
   try{
-
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 15;
 
@@ -142,14 +136,12 @@ router.get("/", auth, async (req,res)=>{
     if(page < 1) page = 1;
 
     const offset = (page - 1) * limit;
-
     const search = req.query.search?.trim() || "";
 
     let where = "";
     let values = [];
 
     if(search.length >= 2){
-
       where = `
         WHERE
         case_number ILIKE $1 OR
@@ -157,22 +149,14 @@ router.get("/", auth, async (req,res)=>{
         case_type ILIKE $1 OR
         station_name ILIKE $1
       `;
-
       values.push(`%${search}%`);
-
     }
 
     /* total count */
-
-    const totalResult = await pool.query(
-      `SELECT COUNT(*) FROM cases ${where}`,
-      values
-    );
-
+    const totalResult = await pool.query( `SELECT COUNT(*) FROM cases ${where}`, values );
     const total = parseInt(totalResult.rows[0].count);
 
     /* page data */
-
     const dataResult = await pool.query(
       `
       SELECT
@@ -192,36 +176,27 @@ router.get("/", auth, async (req,res)=>{
     );
 
     res.json({
-
       data: dataResult.rows,
       total,
       page,
       totalPages: Math.ceil(total/limit)
-
     });
 
   }
   catch(err){
-
     console.error(err);
-
     res.status(500).json({
       error:"Case list failed"
     });
-
   }
-
 });
 
 
 /* =========================================================
    GET SINGLE CASE
 ========================================================= */
-
 router.get("/:id", auth, async (req,res)=>{
-
   try{
-
     const id = req.params.id;
 
     if(!isValidUUID(id))
@@ -229,10 +204,7 @@ router.get("/:id", auth, async (req,res)=>{
         error:"Invalid case ID"
       });
 
-    const result = await pool.query(
-      `SELECT * FROM cases WHERE id=$1`,
-      [id]
-    );
+    const result = await pool.query( `SELECT * FROM cases WHERE id=$1`, [id] );
 
     if(result.rows.length===0)
       return res.status(404).json({
@@ -243,16 +215,12 @@ router.get("/:id", auth, async (req,res)=>{
 
   }
   catch(err){
-
     console.error(err);
 
     res.status(500).json({
       error:"Case fetch failed"
     });
-
   }
-
 });
-
 
 module.exports = router;

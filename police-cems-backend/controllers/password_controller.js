@@ -4,12 +4,10 @@ const bcrypt = require("bcrypt");
 const { sendEventEmail } = require("../services/emailService");
 
 /* ================= CONSTANTS ================= */
-
 const RESET_TOKEN_EXPIRY_MINUTES = 5;
 const MIN_PASSWORD_LENGTH = 8;
 
 /* ================= HELPERS ================= */
-
 function isStrongPassword(pw) {
   if (!pw || pw.length < MIN_PASSWORD_LENGTH) return false;
 
@@ -24,12 +22,9 @@ function isStrongPassword(pw) {
    SEND PASSWORD RESET LINK
 ========================================================= */
 exports.sendResetLink = async (req, res) => {
-
   const startTime = Date.now();
   const { email } = req.body;
-
   try {
-
     if (!email || typeof email !== "string") {
       return res.status(200).json({
         message: "If account exists, reset link will be sent"
@@ -47,9 +42,7 @@ exports.sendResetLink = async (req, res) => {
 
     /* ⭐ ENUMERATION PROTECTION */
     if (!userRes.rows.length) {
-
       await new Promise(r => setTimeout(r, 300)); // timing noise
-
       return res.status(200).json({
         message: "If account exists, reset link will be sent"
       });
@@ -100,14 +93,12 @@ exports.sendResetLink = async (req, res) => {
       console.error("🚨 RESET EMAIL FAILED:", err);
     });
 
-
     return res.status(200).json({
       message: "If account exists, reset link will be sent"
     });
 
   } catch (err) {
     console.error("Reset request error:", err.message);
-
     return res.status(200).json({
       message: "If account exists, reset link will be sent"
     });
@@ -118,26 +109,20 @@ exports.sendResetLink = async (req, res) => {
    RESET PASSWORD
 ========================================================= */
 exports.resetPassword = async (req, res) => {
-
   const { token, newPassword } = req.body;
-
   if (!token || !newPassword) {
     return res.status(400).json({ error: "Invalid request" });
   }
 
   if (!isStrongPassword(newPassword)) {
     return res.status(400).json({
-      error:
-        "Password must contain uppercase, lowercase, number and be 8+ chars"
+      error: "Password must contain uppercase, lowercase, number and be 8+ chars"
     });
   }
 
   const client = await pool.connect();
-
   try {
-
     await client.query("BEGIN");
-
     const tokenHash = crypto
       .createHash("sha256")
       .update(token)
@@ -170,22 +155,13 @@ exports.resetPassword = async (req, res) => {
     const passwordHash = await bcrypt.hash(newPassword, 12);
 
     /* UPDATE PASSWORD */
-    await client.query(
-      `UPDATE users SET password_hash = $1 WHERE id = $2`,
-      [passwordHash, user.user_id]
-    );
+    await client.query( `UPDATE users SET password_hash = $1 WHERE id = $2`, [passwordHash, user.user_id] );
 
     /* MARK TOKEN USED */
-    await client.query(
-      `UPDATE password_resets SET used = true WHERE reset_token = $1`,
-      [tokenHash]
-    );
+    await client.query( `UPDATE password_resets SET used = true WHERE reset_token = $1`, [tokenHash] );
 
     /* ⭐ EXTRA HARDENING: Kill all other tokens */
-    await client.query(
-      `UPDATE password_resets SET used = true WHERE user_id = $1`,
-      [user.user_id]
-    );
+    await client.query( `UPDATE password_resets SET used = true WHERE user_id = $1`, [user.user_id] );
 
     await client.query("COMMIT");
 
@@ -205,16 +181,13 @@ exports.resetPassword = async (req, res) => {
       console.error("🚨 RESET EMAIL FAILED:", err);
     });
 
-
   } catch (err) {
-
     await client.query("ROLLBACK");
     console.error("Password reset error:", err.message);
 
     res.status(500).json({
       error: "Failed to reset password"
     });
-
   } finally {
     client.release();
   }

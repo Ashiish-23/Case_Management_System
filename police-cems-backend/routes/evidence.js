@@ -10,11 +10,9 @@ const { sendEventEmail } = require("../services/emailService");
 /* =========================
    FILE SECURITY CONFIG
 ========================= */
-
 const MAX_FILE_MB = 5;
 const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
-
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg" ,"image/webp"];
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -141,7 +139,6 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
     console.error("Add evidence failed:", err.message);
 
     /* ⭐ CLEAR ERROR RESPONSES */
-
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         error: `File too large. Maximum allowed size is ${MAX_FILE_MB}MB`

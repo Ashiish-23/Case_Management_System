@@ -1,18 +1,12 @@
 import { useState } from "react";
 
 /* ================= SECURITY CONSTANTS ================= */
-
 const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-const ALLOWED_MIME = [
-  "image/jpeg",
-  "image/png",
-  "image/webp"
-];
+const ALLOWED_MIME = [ "image/jpeg", "image/png", "image/webp", "image/jpg" ];
 
 /* ================= HELPERS ================= */
-
 function safeText(v) {
   if (typeof v !== "string") return "";
   return v.trim().slice(0, 500);
@@ -30,7 +24,6 @@ async function secureFetch(url, options = {}, timeout = 15000) {
 }
 
 /* ================= COMPONENT ================= */
-
 export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
   const [description, setDescription] = useState("");
@@ -40,16 +33,13 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
   const [loading, setLoading] = useState(false);
 
   /* ================= FILE VALIDATION ================= */
-
   function validateFile(file) {
 
     if (!file) return "File is required";
 
-    if (!ALLOWED_MIME.includes(file.type)) {
-      return "Only JPG, PNG, WEBP images allowed";
-    }
+    if (!ALLOWED_MIME.includes(file.type)) { return "Only JPG, PNG, WEBP, jpg images allowed"; }
 
-    if (file.size > MAX_FILE_SIZE_BYTES) {
+    if (file.size > MAX_FILE_SIZE_BYTES) { 
       return `File too large. Max ${MAX_FILE_SIZE_MB}MB allowed`;
     }
 
@@ -57,7 +47,6 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
   }
 
   /* ================= SUBMIT ================= */
-
   const submit = async (e) => {
     e.preventDefault();
 
@@ -92,7 +81,6 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
     setLoading(true);
 
     try {
-
       const res = await secureFetch(
         "http://localhost:5000/api/evidence/add",
         {
@@ -139,14 +127,12 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
         console.error("Add evidence failed:", err);
         alert(err.message);
       }
-
     } finally {
       setLoading(false);
     }
   };
 
   /* ================= FILE SELECT ================= */
-
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
 
@@ -163,12 +149,10 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
   };
 
   /* ================= UI ================= */
-
   const inputStyle =
     "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
-  const labelStyle =
-    "block text-xs font-medium text-white mb-1 uppercase tracking-wider";
+  const labelStyle = "block text-xs font-medium text-white mb-1 uppercase tracking-wider";
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">

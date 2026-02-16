@@ -11,10 +11,7 @@ exports.register = async (req, res) => {
   try {
 
     /* 1️⃣ Check Login ID */
-    const exists = await pool.query(
-      "SELECT id FROM users WHERE login_id = $1",
-      [loginId]
-    );
+    const exists = await pool.query( "SELECT id FROM users WHERE login_id = $1", [loginId] );
 
     if (exists.rows.length > 0) {
       return res.status(409).json({ error: "Login ID already exists" });
