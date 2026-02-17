@@ -70,6 +70,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/evidence", evidenceRoutes);
 app.use("/api/transfers", transfersRoutes);
 app.use("/api/custody", require("./routes/custody"));
+app.use("/api/admin", require("./routes/admin"));
 app.use("/api/admin", adminRoutes);
 
 /* ================= STATIC ================= */

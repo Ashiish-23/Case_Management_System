@@ -110,7 +110,7 @@ export default function Layout({ children }) {
                     navigate("/admin");
                     setShowActions(false);
                   }}
-                  className="block w-full text-left px-4 py-3 hover:bg-blue-600"
+                  className="block w-full text-left px-4 py-3 hover:bg-blue-600 rounded-b-xl"
                 >
                   🛠 Admin Panel
                 </button>
