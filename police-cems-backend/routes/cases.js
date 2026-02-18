@@ -105,6 +105,16 @@ router.post("/create", auth, async (req, res) => {
 
     res.json({ success:true, caseNumber });
 
+    await createAuditLog({
+      actorUserId: req.user.userId,
+      actorName: req.user.name,
+      actionType: "CASE_CREATED",
+      targetType: "CASE",
+      targetId: caseNumber,
+      details: { case_number: caseNumber },
+      ipAddress: req.ip
+    });
+
   }
   catch(err){
 

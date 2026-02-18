@@ -11,6 +11,12 @@ import CaseDetail from "./pages/CaseDetail";
 import TransferHistory from "./pages/TransferHistory";
 import Layout from "./components/Layout";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminUsers from "./pages/admin/users/AdminUsers";
+import AdminCases from "./pages/admin/cases/AdminCases";
+import AdminEvidence from "./pages/admin/evidence/AdminEvidence";
+import AdminTransfers from "./pages/admin/transfers/AdminTransfers";
+import AdminStations from "./pages/admin/stations/AdminStations";
 
 /* ================= TOKEN CHECK ================= */
 
@@ -91,13 +97,20 @@ export default function App() {
           </ProtectedRoute>
         } />
 
-        <Route path="/admin" element={
+        <Route path="/admin" element={ 
           <ProtectedRoute>
             <Layout>
               <AdminDashboard />
             </Layout>
           </ProtectedRoute>
         }/>
+
+        <Route path="/admin/*" element={ <ProtectedRoute> <AdminLayout /> </ProtectedRoute> } />
+        <Route path="/admin/users" element={ <ProtectedRoute><AdminUsers /></ProtectedRoute>} />  
+        <Route path="/admin/cases" element={<ProtectedRoute><AdminCases /></ProtectedRoute>} />
+        <Route path="/admin/evidence" element={<ProtectedRoute><AdminEvidence /></ProtectedRoute>} />
+        <Route path="/admin/transfers" element={<ProtectedRoute><AdminTransfers /></ProtectedRoute>} />
+        <Route path="/admin/stations" element={<ProtectedRoute><AdminStations /></ProtectedRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
 
