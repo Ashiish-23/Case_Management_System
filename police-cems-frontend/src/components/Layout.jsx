@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
-export default function Layout({ children }) {
+export default function Layout() {
   const navigate = useNavigate();
   const [showActions, setShowActions] = useState(false);
   const [showUser, setShowUser] = useState(false);
@@ -48,23 +48,19 @@ export default function Layout({ children }) {
         <div onClick={() => navigate("/dashboard")} className="flex items-center gap-3 text-white font-bold cursor-pointer">
           <div className="w-12 h-10 bg-blue-600 rounded flex items-center justify-center overflow-hidden">
             <img className="w-full h-full object-cover" src="/src/assets/police logo.jpeg" alt="Police Department Logo" />
-          </div>
-          POLICE CEMS
+          </div> POLICE CEMS
         </div>
 
         {/* ===== RIGHT BUTTONS ===== */}
         <div className="flex items-center gap-4">
 
           {/* ACTIONS BUTTON */}
-          <button
-            onClick={() => {
-              setShowActions(!showActions);
-              setShowUser(false);
+          <button onClick={() => { 
+            setShowActions(!showActions);
+            setShowUser(false);
             }}
             className="text-xl"
-          >
-            ☰
-          </button>
+          > ☰ </button>
 
           {/* USER BUTTON */}
           <button
@@ -72,36 +68,25 @@ export default function Layout({ children }) {
               setShowUser(!showUser);
               setShowActions(false);
             }}
-            className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center"
-          > 👮 </button>
+            className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center" > 👮 </button>
         </div>
 
         {/* ================= ACTIONS MENU ================= */}
         {showActions && (
           <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setShowActions(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={() => setShowActions(false)} />
 
             <div className="absolute right-16 top-14 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 w-56">
               {/* Create Case */}
-              <button
-                onClick={() => {
+              <button onClick={() => {
                   navigate("/cases/create");
                   setShowActions(false);
                 }}
                 className="block w-full text-left px-4 py-3 hover:bg-blue-600 rounded-t-xl"
-              >
-                ➕ Create Case
-              </button>
+              >  ➕ Create Case </button>
 
               {/* Blockchain placeholder */}
-              <button
-                className="block w-full text-left px-4 py-3 opacity-50 cursor-not-allowed"
-              >
-                🔗 Blockchain
-              </button>
+              <button className="block w-full text-left px-4 py-3 opacity-50 cursor-not-allowed"> 🔗 Blockchain </button>
 
               {/* ADMIN PANEL (CORRECT LOCATION) */}
               {user.role === "admin" && (
@@ -110,49 +95,27 @@ export default function Layout({ children }) {
                     navigate("/admin");
                     setShowActions(false);
                   }}
-                  className="block w-full text-left px-4 py-3 hover:bg-blue-600 rounded-b-xl"
-                >
-                  🛠 Admin Panel
-                </button>
+                  className="block w-full text-left px-4 py-3 hover:bg-blue-600 rounded-b-xl" > 🛠 Admin Panel </button>
               )}
             </div>
           </>
         )}
 
         {/* ================= USER MENU ================= */}
-
         {showUser && (
           <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setShowUser(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={() => setShowUser(false)} />
 
             <div className="absolute right-4 top-14 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 w-56">
               <div className="px-4 py-3 border-b border-slate-700">
-
-                <p className="text-white font-semibold">
-                  {user.name}
-                </p>
-
-                <p className="text-slate-400 text-sm">
-                  {user.role}
-                </p>
+                <p className="text-white font-semibold">{user.name}</p>
+                <p className="text-slate-400 text-sm">{user.role}</p>
               </div>
 
-              <button
-                onClick={changePassword}
-                className="block w-full text-left px-4 py-3 hover:bg-slate-700"
-              >
-                🔑 Change Password
-              </button>
+              <button onClick={changePassword} className="block w-full text-left px-4 py-3 hover:bg-slate-700"> 🔑 Change Password </button>
 
-              <button
-                onClick={logout}
-                className="block w-full text-left px-4 py-3 text-red-400 hover:bg-red-600 hover:text-white rounded-b-xl"
-              >
-                🚪 Logout
-              </button>
+              <button onClick={logout} className="block w-full text-left px-4 py-3 text-red-400 hover:bg-red-600 hover:text-white rounded-b-xl"
+              >🚪 Logout </button>
             </div>
           </>
         )}
@@ -160,7 +123,7 @@ export default function Layout({ children }) {
 
       {/* ================= PAGE CONTENT ================= */}
       <main className="flex-1 pb-10">
-        {children}
+        <Outlet />
       </main>
 
       {/* ================= FOOTER ================= */}

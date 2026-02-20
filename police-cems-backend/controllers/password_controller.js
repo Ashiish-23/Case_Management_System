@@ -59,18 +59,10 @@ exports.sendResetLink = async (req, res) => {
       .digest("hex");
 
     /* ⭐ OPTIONAL: Invalidate old tokens */
-    await pool.query(
-      `UPDATE password_resets SET used = true WHERE user_id = $1`,
-      [user.id]
-    );
+    await pool.query(`UPDATE password_resets SET used = true WHERE user_id = $1`, [user.id] );
 
-    await pool.query(
-      `
-      INSERT INTO password_resets (user_id, reset_token, expires_at)
-      VALUES ($1,$2,NOW() + INTERVAL '${RESET_TOKEN_EXPIRY_MINUTES} minutes')
-      `,
-      [user.id, tokenHash]
-    );
+    await pool.query(`INSERT INTO password_resets (user_id, reset_token, expires_at) 
+      VALUES ($1,$2,NOW() + INTERVAL '${RESET_TOKEN_EXPIRY_MINUTES} minutes')`, [user.id, tokenHash] );
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
@@ -96,7 +88,6 @@ exports.sendResetLink = async (req, res) => {
     return res.status(200).json({
       message: "If account exists, reset link will be sent"
     });
-
   } catch (err) {
     console.error("Reset request error:", err.message);
     return res.status(200).json({
@@ -129,18 +120,10 @@ exports.resetPassword = async (req, res) => {
       .digest("hex");
 
     /* ⭐ LOCK TOKEN ROW */
-    const resetRes = await client.query(
-      `
-      SELECT pr.user_id, u.full_name, u.login_id, u.email
-      FROM password_resets pr
-      JOIN users u ON u.id = pr.user_id
-      WHERE pr.reset_token = $1
-        AND pr.used = false
-        AND pr.expires_at > NOW()
-      FOR UPDATE
-      `,
-      [tokenHash]
-    );
+    const resetRes = await client.query(`
+      SELECT pr.user_id, u.full_name, u.login_id, u.email FROM password_resets pr
+      JOIN users u ON u.id = pr.user_id WHERE pr.reset_token = $1
+        AND pr.used = false AND pr.expires_at > NOW() FOR UPDATE`, [tokenHash] );
 
     if (!resetRes.rows.length) {
       await client.query("ROLLBACK");
@@ -180,7 +163,6 @@ exports.resetPassword = async (req, res) => {
     }).catch(err => {
       console.error("🚨 RESET EMAIL FAILED:", err);
     });
-
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Password reset error:", err.message);

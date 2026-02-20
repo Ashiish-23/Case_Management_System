@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 /* ================= SECURITY HELPERS ================= */
-
 function sanitize(v) {
   return String(v || "").trim();
 }
@@ -24,13 +23,9 @@ async function secureFetch(url, options = {}, timeout = 10000) {
 }
 
 /* ================= COMPONENT ================= */
-
 export default function ResetPassword() {
-
   const navigate = useNavigate();
-
   const token = new URLSearchParams(window.location.search).get("token");
-
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +33,6 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
 
   /* ================= TOKEN GUARD ================= */
-
   if (!token || token.length < 20) {
     return (
       <div className="flex items-center justify-center bg-slate-900 text-white">
@@ -48,9 +42,7 @@ export default function ResetPassword() {
   }
 
   /* ================= SUBMIT ================= */
-
   const submit = async e => {
-
     e.preventDefault();
 
     if (loading) return;
@@ -73,11 +65,9 @@ export default function ResetPassword() {
       );
       return;
     }
-
     setLoading(true);
 
     try {
-
       const res = await secureFetch(
         "http://localhost:5000/api/password/reset",
         {
@@ -96,7 +86,6 @@ export default function ResetPassword() {
       } else {
         alert("Invalid or expired reset link");
       }
-
     } catch (err) {
 
       if (err.name === "AbortError") {
@@ -104,75 +93,43 @@ export default function ResetPassword() {
       } else {
         alert("Reset failed. Try later.");
       }
-
     } finally {
       setLoading(false);
     }
   };
 
   /* ================= UI ================= */
-
-  const inputStyle =
-    "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
-
+  const inputStyle = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
   return (
     <div className="bg-slate-900 flex items-center justify-center p-4">
-
       <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8">
-
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-white">Reset Password</h2>
         </div>
-
         <form className="space-y-6" onSubmit={submit}>
-
           <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="New Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className={inputStyle}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(v => !v)}
-              className="absolute inset-y-0 right-0 px-4 flex items-center text-slate-300 hover:text-white"
-              aria-label="Toggle password visibility"
-            >
+            <input type={showPassword ? "text" : "password"} placeholder="New Password" value={password} onChange={e => setPassword(e.target.value)}
+              required className={inputStyle} />
+            <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute inset-y-0 right-0 px-4 flex items-center text-slate-300 hover:text-white"
+              aria-label="Toggle password visibility" >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
 
           <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              required
-              className={inputStyle}
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(v => !v)}
+            <input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)} required className={inputStyle} />
+            <button type="button" onClick={() => setShowConfirmPassword(v => !v)}
               className="absolute inset-y-0 right-0 px-4 flex items-center text-slate-300 hover:text-white"
-              aria-label="Toggle password visibility"
-            >
+              aria-label="Toggle password visibility" >
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
 
-          <button
-            disabled={loading}
-            className="w-full bg-blue-600 py-3 rounded text-white disabled:opacity-50"
-          >
+          <button disabled={loading} className="w-full bg-blue-600 py-3 rounded text-white disabled:opacity-50" >
             {loading ? "Updating..." : "Update Password"}
           </button>
-
         </form>
-
       </div>
     </div>
   );

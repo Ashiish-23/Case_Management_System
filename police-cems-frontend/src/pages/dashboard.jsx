@@ -4,7 +4,6 @@ import MarqueeStats from "../components/MarqueeStats";
 import CaseTable from "./CaseList";
 
 /* ================= HELPERS ================= */
-
 function safeInt(v) {
   const n = Number(v);
   if (!Number.isFinite(n) || n < 0) return 0;
@@ -14,7 +13,6 @@ function safeInt(v) {
 async function secureFetch(url, options = {}, timeout = 10000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
-
   try {
     return await fetch(url, { ...options, signal: controller.signal });
   } finally {
@@ -23,25 +21,19 @@ async function secureFetch(url, options = {}, timeout = 10000) {
 }
 
 /* ================= COMPONENT ================= */
-
 export default function Dashboard() {
-
   const navigate = useNavigate();
-
   const [stats, setStats] = useState([]);
   const [cases, setCases] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
   /* ===== PAGINATION STATE ===== */
-
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   /* ================= LOAD STATS ================= */
-
   useEffect(() => {
-
     const token = sessionStorage.getItem("token");
 
     if (!token) {
@@ -54,72 +46,50 @@ export default function Dashboard() {
     };
 
     async function loadStats() {
-
       try {
-
         const res = await secureFetch(
           "http://localhost:5000/api/dashboard/stats",
           { headers }
         );
 
         if (res.status === 401 || res.status === 403) {
-
           sessionStorage.clear();
           navigate("/login", { replace: true });
           return;
-
         }
 
         const data = await res.json();
-
         setStats([
           { label: "Total Cases", value: safeInt(data.totalCases) },
           { label: "Evidence Items", value: safeInt(data.evidenceItems) },
           { label: "Transfers", value: safeInt(data.transfers) }
         ]);
-
-      }
-      catch (err) {
-
+      } catch (err) {
         console.error("Stats load error:", err.message);
-
       }
-
     }
-
     loadStats();
-
   }, [navigate]);
 
   /* ================= LOAD CASES ================= */
-
   useEffect(() => {
-
     const token = sessionStorage.getItem("token");
 
     if (!token) return;
 
-    const headers = {
-      Authorization: "Bearer " + token
-    };
-
+    const headers = { Authorization: "Bearer " + token };
     const delay = setTimeout(async () => {
-
       try {
-
         setLoading(true);
-
         const res = await secureFetch(
           `http://localhost:5000/api/cases?page=${page}&limit=15&search=${encodeURIComponent(searchTerm)}`,
           { headers }
         );
 
         if (res.status === 401 || res.status === 403) {
-
           sessionStorage.clear();
           navigate("/login", { replace: true });
           return;
-
         }
 
         if (!res.ok)
@@ -129,118 +99,55 @@ export default function Dashboard() {
 
         setCases(result.data || []);
         setTotalPages(result.totalPages || 1);
-
-      }
-      catch (err) {
-
+      } catch (err) {
         console.error("Cases load error:", err.message);
         setCases([]);
-
-      }
-      finally {
-
+      } finally {
         setLoading(false);
-
       }
-
     }, 300);
-
     return () => clearTimeout(delay);
-
   }, [searchTerm, page, navigate]);
 
   /* ===== RESET PAGE ON SEARCH ===== */
-
-  useEffect(() => {
-    setPage(1);
-  }, [searchTerm]);
+  useEffect(() => { setPage(1); }, [searchTerm]);
 
   /* ================= UI ================= */
-
   return (
-
     <div className="pt-6 px-4 md:px-8 max-w-screen-2xl mx-auto w-full">
-
       {/* HEADER */}
-
       <div className="mb-6">
-
-        <h2 className="text-2xl md:text-3xl font-bold text-white">
-          Officer Dashboard
-        </h2>
-
-        <p className="text-white text-sm mt-1">
-          Overview of registered cases and secure evidence ledger
-        </p>
-
+        <h2 className="text-2xl md:text-3xl font-bold text-white"> Officer Dashboard </h2>
+        <p className="text-white text-sm mt-1"> Overview of registered cases and secure evidence ledger </p>
       </div>
-
       {/* STATS */}
-
       <div className="mb-8 bg-blue-700/50 border border-slate-700 rounded-xl">
         <MarqueeStats stats={stats} />
       </div>
-
       {/* CASE TABLE */}
-
       {loading ? (
-
         <div className="flex flex-col items-center justify-center py-24">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-white">Loading secure case records…</p>
         </div>
-
       ) : (
-
         <div className="bg-blue-900/50 border border-slate-700 rounded-xl shadow-xl">
-          <CaseTable
-            cases={cases}
-            setSearchTerm={setSearchTerm}
-          />
+          <CaseTable cases={cases} setSearchTerm={setSearchTerm} />
         </div>
-
       )}
-
       {/* PAGINATION */}
-
       <div className="flex justify-center items-center gap-2 mt-6">
-
-        <button
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-          className="px-4 py-2 bg-slate-700 text-white rounded disabled:opacity-40"
-        >
+        <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 bg-slate-700 text-white rounded disabled:opacity-40" >
           Previous
         </button>
-
         {[...Array(totalPages)].map((_, i) => (
-
-          <button
-            key={i}
-            onClick={() => setPage(i + 1)}
-            className={`px-3 py-2 rounded text-white ${
-              page === i + 1
-                ? "bg-blue-600"
-                : "bg-slate-700"
-            }`}
-          >
-            {i + 1}
-          </button>
-
+          <button key={i} onClick={() => setPage(i + 1)} className={`px-3 py-2 rounded text-white ${ page === i + 1 ? "bg-blue-600" : "bg-slate-700" }`}
+          > {i + 1} </button>
         ))}
 
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-          className="px-4 py-2 bg-slate-700 text-white rounded disabled:opacity-40"
-        >
-          Next
-        </button>
-
+        <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 bg-slate-700 text-white rounded disabled:opacity-40"
+        > Next </button>
       </div>
-
     </div>
-
   );
-
 }

@@ -3,7 +3,6 @@ import { useState } from "react";
 /* ================= SECURITY CONSTANTS ================= */
 const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-
 const ALLOWED_MIME = [ "image/jpeg", "image/png", "image/webp", "image/jpg" ];
 
 /* ================= HELPERS ================= */
@@ -41,9 +40,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
     if (file.size > MAX_FILE_SIZE_BYTES) { 
       return `File too large. Max ${MAX_FILE_SIZE_MB}MB allowed`;
-    }
-
-    return null;
+    } return null;
   }
 
   /* ================= SUBMIT ================= */
@@ -115,10 +112,8 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
       } else {
         alert("Evidence added successfully");
       }
-
       onAdded?.();
       onClose();
-
     } catch (err) {
 
       if (err.name === "AbortError") {
@@ -144,7 +139,6 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
       e.target.value = "";
       return;
     }
-
     setImage(file);
   };
 
@@ -164,69 +158,38 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
         </div>
 
         <form onSubmit={submit} className="p-6 space-y-5">
-
           <div>
             <label className={labelStyle}>Description *</label>
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              className={`${inputStyle} h-24 resize-none`}
-              required
-            />
+            <textarea value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24 resize-none`} required />
           </div>
 
           <div>
             <label className={labelStyle}>Category *</label>
-            <input
-              value={category}
-              onChange={e => setCategory(e.target.value)}
-              className={inputStyle}
-              required
-            />
+            <input value={category} onChange={e => setCategory(e.target.value)} className={inputStyle} required />
           </div>
 
           <div>
             <label className={labelStyle}>Station Name *</label>
-            <input
-              value={seizedAtStation}
-              onChange={e => setSeizedAtStation(e.target.value)}
-              className={inputStyle}
-              required
-            />
+            <input value={seizedAtStation} onChange={e => setSeizedAtStation(e.target.value)} className={inputStyle} required />
           </div>
 
           <div>
             <label className={labelStyle}>
               Upload Image (Max {MAX_FILE_SIZE_MB}MB) *
             </label>
-            <input
-              type="file"
-              accept=".jpg,.jpeg,.png,.webp"
-              required
-              onChange={handleFileChange}
-              className="text-white text-sm rounded-lg px-3 py-2"
-            />
+            <input type="file" accept=".jpg,.jpeg,.png,.webp" required onChange={handleFileChange} className="text-white text-sm rounded-lg px-3 py-2" />
           </div>
 
           <div className="pt-4 border-t border-slate-700 flex justify-end gap-3">
             <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="text-white px-4 py-2 hover:bg-slate-700 rounded-lg disabled:opacity-50"
-            >
-              Cancel
+              type="button" onClick={onClose} disabled={loading} className="text-white px-4 py-2 hover:bg-slate-700 rounded-lg disabled:opacity-50" >
+                 Cancel
             </button>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 px-6 py-2 rounded-lg text-white hover:bg-blue-700 disabled:opacity-50"
-            >
+            <button type="submit" disabled={loading} className="bg-blue-600 px-6 py-2 rounded-lg text-white hover:bg-blue-700 disabled:opacity-50" >
               {loading ? "Saving..." : "Save Evidence"}
             </button>
           </div>
-
         </form>
       </div>
     </div>

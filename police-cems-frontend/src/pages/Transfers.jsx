@@ -20,7 +20,6 @@ export default function Transfers() {
   return (
     <div className="p-8 bg-blue-950 text-white">
       <h1 className="text-2xl font-bold mb-6 text-white">Transfers</h1>
-
       <table className="w-full bg-blue-900 rounded-xl">
         <thead className="bg-blue-800">
           <tr>
@@ -35,16 +34,10 @@ export default function Transfers() {
               <td className="p-3 text-blue-50">{row.evidence_code}</td>
               <td className="p-3 text-blue-50">{row.current_station}</td>
               <td className="p-3 flex gap-3">
-                <button
-                  onClick={() => navigate(`/transfers/new/${row.evidence_id}`)}
-                  className="px-3 py-1 bg-slate-500 hover:bg-blue-400 rounded text-white font-semibold"
+                <button onClick={() => navigate(`/transfers/new/${row.evidence_id}`)} className="px-3 py-1 bg-slate-500 hover:bg-blue-400 rounded text-white font-semibold"
                 >New Transfer</button>
-                <button
-                  onClick={() => setSelectedEvidence(row.evidence_id)}
-                  className="px-3 py-1 bg-slate-500 hover:bg-blue-400 rounded text-white font-semibold"
-                >
-                  History
-                </button>
+                <button onClick={() => setSelectedEvidence(row.evidence_id)} className="px-3 py-1 bg-slate-500 hover:bg-blue-400 rounded text-white font-semibold"
+                > History </button>
               </td>
             </tr>
           ))}
@@ -52,10 +45,7 @@ export default function Transfers() {
       </table>
 
       {selectedEvidence && (
-        <TransferHistory
-          evidenceId={selectedEvidence}
-          onClose={() => setSelectedEvidence(null)}
-        />
+        <TransferHistory evidenceId={selectedEvidence} onClose={() => setSelectedEvidence(null)} />
       )}
     </div>
   );

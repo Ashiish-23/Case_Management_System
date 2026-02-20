@@ -1,119 +1,103 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 
+/* ================= PUBLIC PAGES ================= */
 import Landing from "./pages/landing";
 import Register from "./pages/register";
 import Login from "./pages/login";
 import ForgotPassword from "./pages/forgotpassword";
 import ResetPassword from "./pages/resetpassword";
+
+/* ================= OFFICER PAGES ================= */
 import Dashboard from "./pages/dashboard";
 import CreateCase from "./pages/CreateCases";
 import CaseDetail from "./pages/CaseDetail";
 import TransferHistory from "./pages/TransferHistory";
-import Layout from "./components/Layout";
-import AdminDashboard from "./pages/AdminDashboard";
+
+/* ================= ADMIN PAGES ================= */
 import AdminLayout from "./pages/admin/AdminLayout";
-import AdminUsers from "./pages/admin/users/AdminUsers";
-import AdminCases from "./pages/admin/cases/AdminCases";
-import AdminEvidence from "./pages/admin/evidence/AdminEvidence";
-import AdminTransfers from "./pages/admin/transfers/AdminTransfers";
-import AdminStations from "./pages/admin/stations/AdminStations";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminCases from "./pages/admin/AdminCases";
+import AdminEvidence from "./pages/admin/AdminEvidence";
+import AdminTransfers from "./pages/admin/AdminTransfers";
+import AdminStations from "./pages/admin/AdminStations";
+import AdminAudit from "./pages/admin/AdminAudit";
 
-/* ================= TOKEN CHECK ================= */
+/* ================= LAYOUT ================= */
+import Layout from "./components/Layout";
 
+/* ================= TOKEN VALIDATION ================= */
 function isTokenValid() {
   const token = sessionStorage.getItem("token");
-  return !!token;
-}
+  if (!token)
+    return false;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      sessionStorage.clear();
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Token validation error:", err);
+    sessionStorage.clear();
+    return false;
+  }
+} 
 
 /* ================= PROTECTED ROUTE ================= */
-
-function ProtectedRoute({ children }) {
-  if (!isTokenValid()) {
-    sessionStorage.clear();
+function ProtectedRoute() {
+  if (!isTokenValid())
     return <Navigate to="/login" replace />;
-  }
-  return children;
+  return <Outlet />;
 }
 
-/* ================= PUBLIC ROUTE ================= */
-
-function PublicOnlyRoute({ children }) {
-  if (isTokenValid()) {
+/* ================= PUBLIC ONLY ROUTE ================= */
+function PublicOnlyRoute() {
+  if (isTokenValid())
     return <Navigate to="/dashboard" replace />;
-  }
-  return children;
+  return <Outlet />;
 }
 
+/* ================= APP ================= */
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* PUBLIC */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/register" element={
-          <PublicOnlyRoute>
-            <Register />
-          </PublicOnlyRoute>
-        } />
-        <Route path="/login" element={
-          <PublicOnlyRoute>
-            <Login />
-          </PublicOnlyRoute>
-        } />
+        {/* ================= PUBLIC ROUTES ================= */}
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/" element={<Landing />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+        </Route>
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* PROTECTED */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Layout>
-              <Dashboard />
-            </Layout>
-          </ProtectedRoute>
-        } />
+        {/* ================= OFFICER ROUTES ================= */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/cases/create" element={<CreateCase />} />
+            <Route path="/case/:id" element={<CaseDetail />} />
+            <Route path="/transfers/history/:evidenceId" element={<TransferHistory />} />
+          </Route>
+        </Route>
 
-        <Route path="/cases/create" element={
-          <ProtectedRoute>
-            <Layout>
-              <CreateCase />
-            </Layout>
-          </ProtectedRoute>
-        } />
+        {/* ================= ADMIN ROUTES ================= */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="cases" element={<AdminCases />} />
+            <Route path="evidence" element={<AdminEvidence />} />
+            <Route path="transfers" element={<AdminTransfers />} />
+            <Route path="stations" element={<AdminStations />} />
+            <Route path="audit" element={<AdminAudit />} />
+          </Route>
+        </Route>
 
-        <Route path="/case/:id" element={
-          <ProtectedRoute>
-            <Layout>
-              <CaseDetail />
-            </Layout>
-          </ProtectedRoute>
-        } />
-
-        <Route path="/transfers/history/:evidenceId" element={
-          <ProtectedRoute>
-            <Layout>
-              <TransferHistory />
-            </Layout>
-          </ProtectedRoute>
-        } />
-
-        <Route path="/admin" element={ 
-          <ProtectedRoute>
-            <Layout>
-              <AdminDashboard />
-            </Layout>
-          </ProtectedRoute>
-        }/>
-
-        <Route path="/admin/*" element={ <ProtectedRoute> <AdminLayout /> </ProtectedRoute> } />
-        <Route path="/admin/users" element={ <ProtectedRoute><AdminUsers /></ProtectedRoute>} />  
-        <Route path="/admin/cases" element={<ProtectedRoute><AdminCases /></ProtectedRoute>} />
-        <Route path="/admin/evidence" element={<ProtectedRoute><AdminEvidence /></ProtectedRoute>} />
-        <Route path="/admin/transfers" element={<ProtectedRoute><AdminTransfers /></ProtectedRoute>} />
-        <Route path="/admin/stations" element={<ProtectedRoute><AdminStations /></ProtectedRoute>} />
-
+        {/* ================= FALLBACK ================= */}
         <Route path="*" element={<Navigate to="/" replace />} />
-
       </Routes>
     </BrowserRouter>
   );

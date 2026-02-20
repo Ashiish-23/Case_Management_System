@@ -1,16 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
-const auth = require("../../middleware/authMiddleware");
-const requireAdmin = require("../../middleware/adminMiddleware");
+const auth = require("../middleware/authMiddleware");
+const requireAdmin = require("../middleware/adminMiddleware");
 
-const statsRoutes = require("./stats");
-const usersRoutes = require("./users");
-const casesRoutes = require("./cases");
-const stationsRoutes = require("./stations");
-const evidenceRoutes = require("./evidence");
-const transfersRoutes = require("./transfers");
-const auditRoutes = require("./audit");
+const statsRoutes = require("./admin/stats");
+const usersRoutes = require("./admin/users");
+const casesRoutes = require("./admin/cases");
+const stationsRoutes = require("./admin/stations");
+const evidenceRoutes = require("./admin/evidence");
+const transfersRoutes = require("./admin/transfers");
+const auditRoutes = require("./admin/audit");
 
 /* Mount submodules */
 

@@ -5,11 +5,8 @@ const { sendEventEmail } = require("../services/emailService");
 
 /* ================= REGISTER ================= */
 exports.register = async (req, res) => {
-
   const { name, loginId, email, password, role } = req.body;
-
   try {
-
     /* 1️⃣ Check Login ID */
     const exists = await pool.query( "SELECT id FROM users WHERE login_id = $1", [loginId] );
 
@@ -19,14 +16,12 @@ exports.register = async (req, res) => {
 
     /* 2️⃣ Hash Password */
     const hash = await bcrypt.hash(password, 12);
-
     /* 3️⃣ Insert User */
     const result = await pool.query(`
       INSERT INTO users (full_name, login_id, email, password_hash, role)
       VALUES ($1,$2,$3,$4,$5)
       RETURNING id, full_name, login_id, email
     `, [name, loginId, email, hash, role]);
-
     const user = result.rows[0];
 
     res.status(201).json({
@@ -46,7 +41,6 @@ exports.register = async (req, res) => {
     }).catch(err =>
       console.error("Registration email failed:", err.message)
     );
-
   } catch (err) {
     console.error("Register error:", err.message);
     res.status(500).json({ error: "Registration failed" });
@@ -55,11 +49,8 @@ exports.register = async (req, res) => {
 
 /* ================= LOGIN ================= */
 exports.login = async (req, res) => {
-
   const { loginId, password } = req.body;
-
   try {
-
     const result = await pool.query(`
       SELECT id, full_name, role, email, password_hash
       FROM users
@@ -71,7 +62,6 @@ exports.login = async (req, res) => {
     }
 
     const user = result.rows[0];
-
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
       return res.status(401).json({ error: "Invalid credentials" });
@@ -94,7 +84,6 @@ exports.login = async (req, res) => {
         email: user.email
       }
     });
-
   } catch (err) {
     console.error("Login error:", err.message);
     res.status(500).json({ error: "Server error" });

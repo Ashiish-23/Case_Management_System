@@ -28,25 +28,16 @@ export default function Landing() {
               <span className="hidden md:block text-slate-400 text-sm">
                 Officer: <span className="text-white font-medium">{user.name}</span>
               </span>
-              <Link 
-                to="/dashboard" 
+              <Link to="/dashboard" 
                 className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 px-5 rounded-lg transition-all shadow-lg shadow-blue-500/20"
-              >
-                Dashboard
-              </Link>
+              > Dashboard </Link>
             </>
           ) : (
             <>
-              <Link 
-                to="/login" 
-                className="text-blue-400 hover:text-white font-medium px-4 py-2 transition-colors"
-              >
+              <Link to="/login" className="text-blue-400 hover:text-white font-medium px-4 py-2 transition-colors" >
                 Login
               </Link>
-              <Link 
-                to="/register" 
-                className="text-blue-400 hover:text-white font-medium px-4 py-2 transition-colors rounded-lg transition-all" 
-              >
+              <Link to="/register" className="text-blue-400 hover:text-white font-medium px-4 py-2 transition-colors rounded-lg transition-all" >
                 Register
               </Link>
             </>
@@ -74,17 +65,11 @@ export default function Landing() {
 
           <div className="pt-8 mb-16">
             {user ? (
-              <Link 
-                to="/dashboard" 
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-lg font-bold py-4 px-10 rounded-xl shadow-xl shadow-blue-900/50 transition-all hover:scale-105 inline-block"
-              >
+              <Link to="/dashboard" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-lg font-bold py-4 px-10 rounded-xl shadow-xl shadow-blue-900/50 transition-all hover:scale-105 inline-block">
                 Go to Console
               </Link>
             ) : (
-              <Link 
-                to="/login" 
-                className="bg-blue-600 text-white hover:bg-blue-700 text-lg font-bold py-4 px-10 rounded-xl shadow-xl shadow-blue-900/20 transition-all hover:scale-105 inline-block"
-              >
+              <Link to="/login" className="bg-blue-600 text-white hover:bg-blue-700 text-lg font-bold py-4 px-10 rounded-xl shadow-xl shadow-blue-900/20 transition-all hover:scale-105 inline-block">
                 Access Secure Portal
               </Link>
             )}
@@ -95,7 +80,6 @@ export default function Landing() {
       {/* FEATURES SECTION (Seamless - No Border) */}
       <section className="relative z-10 pb-20 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          
           {/* Feature 1 */}
           <div className="bg-blue-800/40 border border-blue-700/30 p-6 rounded-2xl hover:bg-blue-800/60 transition-colors">
             <div className="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center text-2xl mb-4 text-blue-200">🔒</div>
@@ -104,7 +88,6 @@ export default function Landing() {
               Role-based access, cryptographic hashing, and strict audit controls protect all case data from unauthorized access.
             </p>
           </div>
-
           {/* Feature 2 */}
           <div className="bg-blue-800/40 border border-blue-700/30 p-6 rounded-2xl hover:bg-blue-800/60 transition-colors">
             <div className="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center text-2xl mb-4 text-blue-200">🧾</div>
@@ -113,7 +96,6 @@ export default function Landing() {
               Every evidence movement is recorded with hash chaining, creating a tamper-evident chain of custody.
             </p>
           </div>
-
           {/* Feature 3 */}
           <div className="bg-blue-800/40 border border-blue-700/30 p-6 rounded-2xl hover:bg-blue-800/60 transition-colors">
             <div className="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center text-2xl mb-4 text-blue-200">⚖️</div>
@@ -122,17 +104,14 @@ export default function Landing() {
               Generate standardized, legally compliant reports with full movement history and officer accountability.
             </p>
           </div>
-
         </div>
       </section>
-
       {/* FOOTER */}
       <footer className="relative z-10 border-t border-blue-800/30 bg-slate-900/50 py-8 text-center">
         <p className="text-slate-400 text-sm">
           © {new Date().getFullYear()} Police Department • <span className="text-slate-500">Authorized Personnel Only</span>
         </p>
       </footer>
-
     </div>
   );
 }

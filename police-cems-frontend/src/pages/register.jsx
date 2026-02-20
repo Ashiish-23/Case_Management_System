@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 /* ================= SECURITY HELPERS ================= */
-
 function sanitize(v) {
   return String(v || "")
     .trim()
@@ -27,7 +26,6 @@ function strongPassword(pw) {
 async function secureFetch(url, options = {}, timeout = 10000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
-
   try {
     return await fetch(url, { ...options, signal: controller.signal });
   } finally {
@@ -36,11 +34,8 @@ async function secureFetch(url, options = {}, timeout = 10000) {
 }
 
 /* ================= COMPONENT ================= */
-
 export default function Register() {
-
   const navigate = useNavigate();
-
   const [form, setForm] = useState({
     name: "",
     loginId: "",
@@ -53,7 +48,6 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const handleChange = e =>
     setForm(prev => ({
       ...prev,
@@ -61,9 +55,7 @@ export default function Register() {
     }));
 
   /* ================= SUBMIT ================= */
-
   const submit = async e => {
-
     e.preventDefault();
 
     if (loading) return;
@@ -79,7 +71,6 @@ export default function Register() {
     };
 
     /* VALIDATION */
-
     if (!clean.name || !clean.loginId || !clean.email || !clean.role) {
       alert("All fields required");
       return;
@@ -110,7 +101,6 @@ export default function Register() {
     setLoading(true);
 
     try {
-
       const res = await secureFetch(
         "http://localhost:5000/api/auth/register",
         {
@@ -137,7 +127,6 @@ export default function Register() {
 
       alert("Registration successful");
       navigate("/login");
-
     } catch (err) {
 
       if (err.name === "AbortError") {
@@ -145,40 +134,27 @@ export default function Register() {
       } else {
         alert(err.message || "Registration failed");
       }
-
     } finally {
       setLoading(false);
     }
   };
 
   /* ================= UI ================= */
-
-  const inputStyle =
-    "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
-
+  const inputStyle = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
   return (
     <div className="bg-blue-900 flex items-center justify-center p-4">
-
       <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8">
-
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-white">Officer Registration</h2>
         </div>
-
         <form className="space-y-4" onSubmit={submit}>
-
           <div className="grid grid-cols-2 gap-4">
-            <input name="name" placeholder="Full Name"
-              onChange={handleChange} required className={inputStyle}/>
-            <input name="loginId" placeholder="Login ID"
-              onChange={handleChange} required className={inputStyle}/>
+            <input name="name" placeholder="Full Name" onChange={handleChange} required className={inputStyle}/>
+            <input name="loginId" placeholder="Login ID" onChange={handleChange} required className={inputStyle}/>
           </div>
 
-          <input name="email" type="email" placeholder="Official Email"
-            onChange={handleChange} required className={inputStyle}/>
-
-          <select name="role" onChange={handleChange}
-            required className={inputStyle}>
+          <input name="email" type="email" placeholder="Official Email" onChange={handleChange} required className={inputStyle}/>
+          <select name="role" onChange={handleChange} required className={inputStyle}>
             <option value="">Select Role</option>
             <option>Constable</option>
             <option>Head Constable</option>
@@ -189,31 +165,17 @@ export default function Register() {
           </select>
 
           <div className="relative">
-            <input name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              onChange={handleChange}
-              required
-              className={`${inputStyle} pr-12`}
-            />
-            <button type="button"
-              onClick={() => setShowPassword(s => !s)}
-              className="absolute right-0 top-0 h-full px-4 text-white">
+            <input name="password" type={showPassword ? "text" : "password"} placeholder="Password" onChange={handleChange} required
+              className={`${inputStyle} pr-12`} />
+            <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-0 top-0 h-full px-4 text-white">
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
 
           <div className="relative">
-            <input name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm Password"
-              onChange={handleChange}
-              required
-              className={`${inputStyle} pr-12`}
-            />
-            <button type="button"
-              onClick={() => setShowConfirmPassword(s => !s)}
-              className="absolute right-0 top-0 h-full px-4 text-white">
+            <input name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" onChange={handleChange}
+              required className={`${inputStyle} pr-12`} />
+            <button type="button" onClick={() => setShowConfirmPassword(s => !s)} className="absolute right-0 top-0 h-full px-4 text-white">
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
@@ -222,7 +184,6 @@ export default function Register() {
             className="w-full bg-blue-600 py-3 rounded text-white">
             {loading ? "Creating Account..." : "Register"}
           </button>
-
         </form>
       </div>
     </div>
