@@ -35,7 +35,8 @@ router.get("/", auth, requireAdmin, async (req, res) => {
           e.description ILIKE $1 OR
           e.seized_at_station ILIKE $1 OR
           c.case_number ILIKE $1 OR
-          u.full_name ILIKE $1
+          u.full_name ILIKE $1 OR
+          e.category ILIKE $1
       `;
 
       values.push(`%${search}%`);

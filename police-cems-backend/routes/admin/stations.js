@@ -7,8 +7,10 @@ const auth = require("../../middleware/authMiddleware");
 const requireAdmin = require("../../middleware/adminMiddleware");
 
 
+
 /* =====================================================
-   GET ALL STATIONS (FULL DETAILS + PAGINATION)
+   GET ALL STATIONS
+   Admin global station ledger
 ===================================================== */
 
 router.get("/", auth, requireAdmin, async (req, res) => {
@@ -17,56 +19,59 @@ router.get("/", auth, requireAdmin, async (req, res) => {
 
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 15;
-    let search = req.query.search || "";
+    let search = req.query.search?.trim() || "";
 
     if (limit > 100) limit = 100;
     if (page < 1) page = 1;
 
     const offset = (page - 1) * limit;
 
+    /* ================= COUNT ================= */
 
-    /* COUNT */
-
-    const countResult = await pool.query(`
+    const countQuery = `
       SELECT COUNT(*)
-      FROM stations
-      WHERE name ILIKE $1
-    `, [`%${search}%`]);
+      FROM stations s
+      WHERE s.name ILIKE $1
+    `;
 
-    const total = Number(countResult.rows[0].count);
+    const countResult = await pool.query(countQuery, [`%${search}%`]);
+    const total = parseInt(countResult.rows[0].count);
 
 
-    /* MAIN QUERY */
+    /* ================= MAIN DATA ================= */
 
-    const result = await pool.query(`
+    const dataQuery = `
 
       SELECT
+
         s.id,
         s.name,
         s.code,
-        s.address,
         s.city,
         s.district,
         s.state,
-        s.pincode,
-        s.contact_phone,
-        s.contact_email,
         s.status,
         s.created_at,
         s.updated_at,
 
-        COALESCE((
+        /* ACTIVE OFFICERS COUNT */
+
+        (
           SELECT COUNT(*)
           FROM officer_station_assignments osa
-          WHERE osa.station_id = s.id
+          WHERE osa.station_name = s.name
           AND osa.relieved_at IS NULL
-        ),0) AS officer_count,
+        ) AS officer_count,
 
-        COALESCE((
+
+        /* CASE COUNT */
+
+        (
           SELECT COUNT(*)
           FROM cases c
-          WHERE c.station_id = s.id
-        ),0) AS case_count
+          WHERE c.station_name = s.name
+        ) AS case_count
+
 
       FROM stations s
 
@@ -76,17 +81,20 @@ router.get("/", auth, requireAdmin, async (req, res) => {
 
       LIMIT $2 OFFSET $3
 
-    `, [`%${search}%`, limit, offset]);
+    `;
+
+    const result = await pool.query(dataQuery, [
+      `%${search}%`,
+      limit,
+      offset
+    ]);
 
 
     res.json({
 
       data: result.rows,
-
       total,
-
       page,
-
       totalPages: Math.ceil(total / limit)
 
     });
@@ -105,16 +113,16 @@ router.get("/", auth, requireAdmin, async (req, res) => {
 });
 
 
+
 /* =====================================================
-   AUTOCOMPLETE SEARCH (AMAZON STYLE)
-   PUBLIC SAFE FOR TRANSFER INPUT DROPDOWN
+   AUTOCOMPLETE SEARCH (Transfers / assignment)
 ===================================================== */
 
 router.get("/search", auth, async (req, res) => {
 
   try {
 
-    const q = req.query.q || "";
+    const q = req.query.q?.trim() || "";
 
     if (q.length < 1)
       return res.json([]);
@@ -129,11 +137,11 @@ router.get("/search", auth, async (req, res) => {
 
       FROM stations
 
-      WHERE name ILIKE $1
-      AND status = 'active'
+      WHERE
+        status = 'active'
+        AND name ILIKE $1
 
       ORDER BY name
-
       LIMIT 10
 
     `, [`${q}%`]);
@@ -155,8 +163,9 @@ router.get("/search", auth, async (req, res) => {
 });
 
 
+
 /* =====================================================
-   CREATE NEW STATION (FULL DATA)
+   CREATE NEW STATION
 ===================================================== */
 
 router.post("/", auth, requireAdmin, async (req, res) => {
@@ -178,16 +187,21 @@ router.post("/", auth, requireAdmin, async (req, res) => {
     } = req.body;
 
 
-    if (!name || !code || !address || !city || !district)
+    if (!name || !code || !city || !district)
       return res.status(400).json({
         error: "Missing required fields"
       });
 
 
+    /* DUPLICATE CHECK */
+
     const exists = await pool.query(`
-      SELECT id FROM stations
+
+      SELECT id
+      FROM stations
       WHERE LOWER(name) = LOWER($1)
       OR LOWER(code) = LOWER($2)
+
     `, [name, code]);
 
 
@@ -196,6 +210,8 @@ router.post("/", auth, requireAdmin, async (req, res) => {
         error: "Station already exists"
       });
 
+
+    /* INSERT */
 
     const result = await pool.query(`
 
@@ -209,11 +225,12 @@ router.post("/", auth, requireAdmin, async (req, res) => {
         state,
         pincode,
         contact_phone,
-        contact_email
+        contact_email,
+        status
 
       )
 
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'active')
 
       RETURNING *
 
@@ -221,13 +238,13 @@ router.post("/", auth, requireAdmin, async (req, res) => {
 
       name,
       code,
-      address,
+      address || null,
       city,
       district,
       state || "Karnataka",
-      pincode,
-      contact_phone,
-      contact_email
+      pincode || null,
+      contact_phone || null,
+      contact_email || null
 
     ]);
 
@@ -235,7 +252,6 @@ router.post("/", auth, requireAdmin, async (req, res) => {
     res.json({
 
       success: true,
-
       station: result.rows[0]
 
     });
@@ -254,111 +270,33 @@ router.post("/", auth, requireAdmin, async (req, res) => {
 });
 
 
+
 /* =====================================================
-   UPDATE STATION DETAILS
+   ACTIVATE / DEACTIVATE STATION
+   Never delete stations
 ===================================================== */
 
-router.patch("/:id", auth, requireAdmin, async (req, res) => {
+router.patch("/:id/status", auth, requireAdmin, async (req, res) => {
 
   try {
 
-    const {
+    const { status } = req.body;
 
-      name,
-      code,
-      address,
-      city,
-      district,
-      state,
-      pincode,
-      contact_phone,
-      contact_email,
-      status
-
-    } = req.body;
-
-
-    await pool.query(`
-
-      UPDATE stations SET
-
-        name = $1,
-        code = $2,
-        address = $3,
-        city = $4,
-        district = $5,
-        state = $6,
-        pincode = $7,
-        contact_phone = $8,
-        contact_email = $9,
-        status = $10,
-        updated_at = CURRENT_TIMESTAMP
-
-      WHERE id = $11
-
-    `, [
-
-      name,
-      code,
-      address,
-      city,
-      district,
-      state,
-      pincode,
-      contact_phone,
-      contact_email,
-      status,
-      req.params.id
-
-    ]);
-
-
-    res.json({
-      success: true
-    });
-
-  }
-  catch (err) {
-
-    console.error("Update station error:", err);
-
-    res.status(500).json({
-      error: "Update failed"
-    });
-
-  }
-
-});
-
-
-/* =====================================================
-   DELETE STATION (SAFE)
-===================================================== */
-
-router.delete("/:id", auth, requireAdmin, async (req, res) => {
-
-  try {
-
-    const inUse = await pool.query(`
-
-      SELECT 1
-      FROM officer_station_assignments
-      WHERE station_id = $1
-      LIMIT 1
-
-    `, [req.params.id]);
-
-
-    if (inUse.rows.length > 0)
+    if (!["active", "inactive"].includes(status))
       return res.status(400).json({
-        error: "Station is in use"
+        error: "Invalid status"
       });
 
 
     await pool.query(`
-      DELETE FROM stations
-      WHERE id = $1
-    `, [req.params.id]);
+
+      UPDATE stations
+      SET
+        status = $1,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+
+    `, [status, req.params.id]);
 
 
     res.json({
@@ -368,10 +306,10 @@ router.delete("/:id", auth, requireAdmin, async (req, res) => {
   }
   catch (err) {
 
-    console.error("Delete station error:", err);
+    console.error("Status update error:", err);
 
     res.status(500).json({
-      error: "Delete failed"
+      error: "Failed to update status"
     });
 
   }
@@ -379,15 +317,32 @@ router.delete("/:id", auth, requireAdmin, async (req, res) => {
 });
 
 
+
 /* =====================================================
-   GET OFFICERS IN STATION
+   GET OFFICERS ASSIGNED TO STATION
 ===================================================== */
 
 router.get("/:id/officers", auth, requireAdmin, async (req, res) => {
 
   try {
 
-    const result = await pool.query(`
+    const stationResult = await pool.query(`
+
+      SELECT name
+      FROM stations
+      WHERE id = $1
+
+    `, [req.params.id]);
+
+
+    if (stationResult.rows.length === 0)
+      return res.json([]);
+
+
+    const stationName = stationResult.rows[0].name;
+
+
+    const officers = await pool.query(`
 
       SELECT
         u.id,
@@ -400,15 +355,16 @@ router.get("/:id/officers", auth, requireAdmin, async (req, res) => {
       JOIN users u
       ON u.id = osa.officer_id
 
-      WHERE osa.station_id = $1
-      AND osa.relieved_at IS NULL
+      WHERE
+        osa.station_name = $1
+        AND osa.relieved_at IS NULL
 
       ORDER BY u.full_name
 
-    `, [req.params.id]);
+    `, [stationName]);
 
 
-    res.json(result.rows);
+    res.json(officers.rows);
 
   }
   catch (err) {
@@ -422,6 +378,7 @@ router.get("/:id/officers", auth, requireAdmin, async (req, res) => {
   }
 
 });
+
 
 
 module.exports = router;

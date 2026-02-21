@@ -49,6 +49,7 @@ export default function AdminLayout() {
 
   /* ================= NAVIGATION ================= */
   const navItems = [
+    { name: "Dashboard", path: "/admin"},
     { name: "Users", path: "/admin/users" },
     { name: "Cases", path: "/admin/cases" },
     { name: "Evidence", path: "/admin/evidence" },
@@ -59,7 +60,7 @@ export default function AdminLayout() {
 
   /* ================= UI ================= */
   return (
-    <div className="min-h-screen bg-blue-900 text-white flex flex-col">
+    <div className="min-h-screen bg-blue-800 text-white flex flex-col">
 
       {/* TOPBAR */}
       <header className="bg-slate-900 border-b border-slate-700">
@@ -106,7 +107,7 @@ export default function AdminLayout() {
       </header>
 
       {/* NAVBAR */}
-      <div className="bg-blue-800 border-b border-slate-700">
+      <div className="bg-blue-800">
         <div className="max-w-screen-lg mx-auto px-6 py-3 flex justify-center items-center gap-4 flex-wrap">
           {navItems.map(item => (
             <NavLink key={item.path} to={item.path}
@@ -118,7 +119,7 @@ export default function AdminLayout() {
 
       {/* CONTENT */}
       <main className="flex-1">
-        <div className="max-w-screen-2xl mx-auto px-6 py-8">
+        <div className="max-w-screen-2xl bg-blue-800 min-h-screen mx-auto px-6 py-8">
           <Outlet />
         </div>
       </main>

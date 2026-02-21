@@ -1,41 +1,28 @@
 import { useEffect, useState, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 
+
 /* ================= SECURE FETCH ================= */
 
 async function secureFetch(url, options = {}) {
 
-  try {
+  const token = sessionStorage.getItem("token");
 
-    const token = sessionStorage.getItem("token");
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+      ...options.headers
+    }
+  });
 
-    const res = await fetch(url, {
+  const data = await res.json().catch(() => ({}));
 
-      ...options,
+  if (!res.ok)
+    throw new Error(data.error || "Request failed");
 
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-        ...options.headers
-      }
-
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok)
-      throw new Error(data.error || `Server error (${res.status})`);
-
-    return data;
-
-  }
-  catch (err) {
-
-    console.error("API Error:", err.message);
-    throw err;
-
-  }
-
+  return data;
 }
 
 
@@ -52,8 +39,7 @@ export default function AdminUsers() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
 
-  const [loadingUsers, setLoadingUsers] = useState(true);
-
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
 
@@ -73,7 +59,8 @@ export default function AdminUsers() {
     }
 
   }
-  catch { error }
+  catch { error}
+
 
 
   /* ================= LOAD USERS ================= */
@@ -82,27 +69,26 @@ export default function AdminUsers() {
 
     try {
 
-      setLoadingUsers(true);
+      setLoading(true);
+      setError(null);
 
       const result =
         await secureFetch(
-          `http://localhost:5000/api/admin/users?page=${page}&search=${search}&limit=15`
+          `http://localhost:5000/api/admin/users?page=${page}&limit=15&search=${encodeURIComponent(search)}`
         );
 
       setUsers(result.data || []);
       setTotalPages(result.totalPages || 1);
 
-      setError(null);
-
     }
-    catch {
+    catch (err) {
 
-      setError("Failed to load officers");
+      setError(err.message);
 
     }
     finally {
 
-      setLoadingUsers(false);
+      setLoading(false);
 
     }
 
@@ -110,7 +96,6 @@ export default function AdminUsers() {
 
 
   /* ================= LOAD STATIONS ================= */
-  /* UPDATED FOR NEW STATIONS TABLE STRUCTURE */
 
   const loadStations = useCallback(async () => {
 
@@ -121,15 +106,10 @@ export default function AdminUsers() {
           "http://localhost:5000/api/admin/stations?page=1&limit=100"
         );
 
-      if (result && result.data)
-        setStations(result.data);
-      else
-        setStations([]);
+      setStations(result.data || []);
 
     }
-    catch (err) {
-
-      console.warn("Stations unavailable:", err.message);
+    catch {
 
       setStations([]);
 
@@ -157,8 +137,6 @@ export default function AdminUsers() {
         { method: "PATCH" }
       );
 
-      alert("Officer approved and email notification sent");
-
       loadUsers();
 
     }
@@ -173,8 +151,7 @@ export default function AdminUsers() {
 
   async function blockUser(id) {
 
-    if (!confirm("Block this officer?"))
-      return;
+    if (!confirm("Block this user?")) return;
 
     try {
 
@@ -182,8 +159,6 @@ export default function AdminUsers() {
         `http://localhost:5000/api/admin/users/${id}/block`,
         { method: "PATCH" }
       );
-
-      alert("Officer blocked and notified");
 
       loadUsers();
 
@@ -223,9 +198,9 @@ export default function AdminUsers() {
   }
 
 
-  async function assignStation(id, stationId) {
+  async function assignStation(id, stationName) {
 
-    if (!stationId) return;
+    if (!stationName) return;
 
     try {
 
@@ -234,12 +209,10 @@ export default function AdminUsers() {
         {
           method: "POST",
           body: JSON.stringify({
-            station_id: stationId
+            station_name: stationName
           })
         }
       );
-
-      alert("Station assigned successfully");
 
       loadUsers();
 
@@ -256,7 +229,7 @@ export default function AdminUsers() {
   function handleSearch() {
 
     setPage(1);
-    setSearch(searchInput);
+    setSearch(searchInput.trim());
 
   }
 
@@ -265,63 +238,49 @@ export default function AdminUsers() {
 
   return (
 
-    <div className="pt-6 px-4 md:px-8 max-w-screen-2xl mx-auto w-full">
-
+    <div className="pt-6 px-6 max-w-screen-2xl mx-auto text-white">
 
       {/* HEADER */}
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6">
 
-        <div className="gap-3">
+        <h1 className="text-2xl font-semibold">
+          User Management
+        </h1>
 
-          <h1 className="text-2xl font-semibold">
-            Officer Management
-          </h1>
-
-          <p className="text-slate-400 text-sm">
-            Manage officer access and assignments
-          </p>
-
-        </div>
+        <p className="text-slate-400 text-sm">
+          Approve, block, assign stations, and manage roles
+        </p>
 
       </div>
+
+
+
+      {/* SEARCH */}
+
+      <div className="flex justify-between mb-4">
+
+        <input
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search users..."
+          className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg w-80"
+        />
+
+        <button
+          onClick={handleSearch}
+          className="bg-blue-600 px-4 py-2 rounded-lg"
+        >
+          Search
+        </button>
+
+      </div>
+
 
 
       {/* TABLE */}
 
       <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-
-
-        {/* SEARCH */}
-
-        <div className="flex justify-between px-6 py-4 border-b border-slate-700">
-
-          <div className="font-semibold">
-            Registered Officers
-          </div>
-
-          <div className="flex gap-2">
-
-            <input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search officer..."
-              className="bg-slate-900 border border-slate-700 px-3 py-2 rounded-lg"
-            />
-
-            <button
-              onClick={handleSearch}
-              className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg"
-            >
-              Search
-            </button>
-
-          </div>
-
-        </div>
-
-
-        {/* TABLE CONTENT */}
 
         <table className="w-full">
 
@@ -329,13 +288,11 @@ export default function AdminUsers() {
 
             <tr>
 
-              <th className="px-6 py-3 text-left">Login ID</th>
-
-              <th className="px-6 py-3 text-left">Officer Name</th>
-
-              <th className="px-6 py-3 text-left">Status</th>
-
-              <th className="px-6 py-3 text-left">Actions</th>
+              <th className="p-3 text-left">Login ID</th>
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Station</th>
+              <th className="p-3 text-left">Actions</th>
 
             </tr>
 
@@ -344,48 +301,50 @@ export default function AdminUsers() {
 
           <tbody>
 
-            {loadingUsers && (
-
+            {loading &&
               <tr>
-                <td colSpan="4" className="text-center py-6">
-                  Loading officers...
+                <td colSpan="5" className="text-center p-6">
+                  Loading users...
                 </td>
               </tr>
+            }
 
-            )}
+
+            {error &&
+              <tr>
+                <td colSpan="5" className="text-center text-red-400 p-6">
+                  {error}
+                </td>
+              </tr>
+            }
 
 
-            {!loadingUsers && users.map(user => {
+            {!loading && users.map(user => {
 
               const isSelf = user.id === adminId;
-              const isActive = user.status === "active";
 
               return (
 
                 <tr key={user.id} className="border-t border-slate-700">
 
-                  <td className="px-6 py-3">{user.login_id}</td>
+                  <td className="p-3">{user.login_id}</td>
 
-                  <td className="px-6 py-3 font-medium">
-
+                  <td className="p-3">
                     {user.full_name}
-
-                    {isSelf &&
-                      <span className="text-xs text-slate-400 ml-2">
-                        (You)
-                      </span>
-                    }
-
+                    {isSelf && " (You)"}
                   </td>
 
-                  <td className="px-6 py-3">
+                  <td className="p-3">
                     <StatusBadge status={user.status}/>
                   </td>
 
-                  <td className="px-6 py-3 flex gap-2 flex-wrap">
+                  <td className="p-3">
+                    {user.current_station || "—"}
+                  </td>
 
+                  <td className="p-3 flex gap-2 flex-wrap">
 
-                    {!isSelf && !isActive &&
+                    {!isSelf && user.status === "pending" &&
                       <button
                         onClick={() => approveUser(user.id)}
                         className="bg-green-600 px-3 py-1 rounded"
@@ -412,29 +371,24 @@ export default function AdminUsers() {
                       >
                         <option value="">Role</option>
                         <option>Constable</option>
-                        <option>Head Constable</option>
-                        <option>Sub-Inspector</option>
                         <option>Inspector</option>
-                        <option>DSP</option>
                         <option>SP</option>
                       </select>
                     }
 
 
-                    {!isSelf && stations.length > 0 &&
+                    {!isSelf &&
                       <select
                         onChange={(e) => assignStation(user.id, e.target.value)}
                         className="bg-slate-700 px-2 py-1 rounded"
                       >
-                        <option value="">Station</option>
+                        <option value="">Assign Station</option>
 
-                        {stations.map(st => (
-
-                          <option key={st.id} value={st.id}>
+                        {stations.map(st =>
+                          <option key={st.id} value={st.name}>
                             {st.name}
                           </option>
-
-                        ))}
+                        )}
 
                       </select>
                     }
@@ -454,15 +408,14 @@ export default function AdminUsers() {
 
         {/* PAGINATION */}
 
-        <div className="flex justify-center gap-2 py-4 border-t border-slate-700">
-
+        <div className="flex justify-center gap-2 p-4">
 
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="bg-slate-700 px-4 py-2 rounded"
+            className="bg-slate-700 px-3 py-1 rounded"
           >
-            Previous
+            Prev
           </button>
 
 
@@ -470,14 +423,14 @@ export default function AdminUsers() {
 
             <button
               key={i}
-              onClick={() => setPage(i+1)}
+              onClick={() => setPage(i + 1)}
               className={
-                page === i+1
-                ? "bg-blue-600 px-4 py-2 rounded"
-                : "bg-slate-700 px-4 py-2 rounded"
+                page === i + 1
+                  ? "bg-blue-600 px-3 py-1 rounded"
+                  : "bg-slate-700 px-3 py-1 rounded"
               }
             >
-              {i+1}
+              {i + 1}
             </button>
 
           ))}
@@ -486,17 +439,14 @@ export default function AdminUsers() {
           <button
             disabled={page === totalPages}
             onClick={() => setPage(page + 1)}
-            className="bg-slate-700 px-4 py-2 rounded"
+            className="bg-slate-700 px-3 py-1 rounded"
           >
             Next
           </button>
 
-
         </div>
 
-
       </div>
-
 
     </div>
 
@@ -509,8 +459,8 @@ export default function AdminUsers() {
 
 function StatusBadge({ status }) {
 
-  if (status === "active")
-    return <span className="text-green-400">Active</span>;
+  if (status === "approved")
+    return <span className="text-green-400">Approved</span>;
 
   if (status === "blocked")
     return <span className="text-red-400">Blocked</span>;

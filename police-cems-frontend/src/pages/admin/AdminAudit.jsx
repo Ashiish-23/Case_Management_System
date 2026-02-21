@@ -39,6 +39,12 @@ export default function AdminAudit() {
       setLoading(false);
     }
   }
+  function goToPage(p) {
+    if (p < 1 || p > totalPages)
+      return;
+
+    setPage(p);
+  }
 
   if (loading)
     return <div className="text-white">Loading audit logs...</div>;
@@ -85,19 +91,41 @@ export default function AdminAudit() {
         </tbody>
       </table>
 
-      <div className="flex gap-4 mt-4">
-        <button
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)} > Prev </button>
+      {/* PAGINATION */}
+        <div className="flex justify-center gap-2 py-4 border-t border-slate-700">
+          <button
+            disabled={page === 1}
+            onClick={() => goToPage(page - 1)}
+            className="bg-slate-700 hover:bg-slate-600 disabled:opacity-40 px-4 py-2 rounded-lg text-white"
+          >
+            Previous
+          </button>
 
-        <span>
-          Page {page} / {totalPages}
-        </span>
+          {[...Array(totalPages)].map((_, i) => {
+            const p = i + 1;
+            return (
+              <button
+                key={p}
+                onClick={() => goToPage(p)}
+                className={
+                  page === p
+                    ? "bg-blue-600 px-4 py-2 rounded-lg text-white"
+                    : "bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-white"
+                }
+              >
+                {p}
+              </button>
+            );
+          })}
 
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)} > Next </button>
-      </div>
+          <button
+            disabled={page === totalPages}
+            onClick={() => goToPage(page + 1)}
+            className="bg-slate-700 hover:bg-slate-600 disabled:opacity-40 px-4 py-2 rounded-lg text-white"
+          >
+            Next
+          </button>
+        </div>
     </div>
   );
 }
