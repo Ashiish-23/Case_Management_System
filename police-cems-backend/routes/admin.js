@@ -10,7 +10,6 @@ const casesRoutes = require("./admin/cases");
 const stationsRoutes = require("./admin/stations");
 const evidenceRoutes = require("./admin/evidence");
 const transfersRoutes = require("./admin/transfers");
-const auditRoutes = require("./admin/audit");
 
 /* Mount submodules */
 
@@ -20,6 +19,5 @@ router.use("/cases", auth, requireAdmin, casesRoutes);
 router.use("/stations", auth, requireAdmin, stationsRoutes);
 router.use("/evidence", auth, requireAdmin, evidenceRoutes);
 router.use("/transfers", auth, requireAdmin, transfersRoutes);
-router.use("/audit", auth, requireAdmin, auditRoutes);
 
 module.exports = router;

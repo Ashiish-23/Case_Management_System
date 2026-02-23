@@ -71,7 +71,6 @@ app.use("/api/evidence", evidenceRoutes);
 app.use("/api/transfers", transfersRoutes);
 app.use("/api/custody", require("./routes/custody"));
 app.use("/api/admin", require("./routes/admin"));
-app.use("/api/admin", adminRoutes);
 
 /* ================= STATIC ================= */
 app.use("/uploads", express.static("uploads", {

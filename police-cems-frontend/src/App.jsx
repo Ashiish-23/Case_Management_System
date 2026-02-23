@@ -21,7 +21,6 @@ import AdminCases from "./pages/admin/AdminCases";
 import AdminEvidence from "./pages/admin/AdminEvidence";
 import AdminTransfers from "./pages/admin/AdminTransfers";
 import AdminStations from "./pages/admin/AdminStations";
-import AdminAudit from "./pages/admin/AdminAudit";
 
 /* ================= LAYOUT ================= */
 import Layout from "./components/Layout";
@@ -92,7 +91,6 @@ export default function App() {
             <Route path="evidence" element={<AdminEvidence />} />
             <Route path="transfers" element={<AdminTransfers />} />
             <Route path="stations" element={<AdminStations />} />
-            <Route path="audit" element={<AdminAudit />} />
           </Route>
         </Route>
 

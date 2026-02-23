@@ -49,13 +49,12 @@ export default function AdminLayout() {
 
   /* ================= NAVIGATION ================= */
   const navItems = [
-    { name: "Dashboard", path: "/admin"},
+    { name: "Officer`s Dashboard", path: "/dashboard"},
     { name: "Users", path: "/admin/users" },
     { name: "Cases", path: "/admin/cases" },
     { name: "Evidence", path: "/admin/evidence" },
     { name: "Transfers", path: "/admin/transfers" },
     { name: "Stations", path: "/admin/stations" },
-    { name: "Audit Logs", path: "/admin/audit" }
   ];
 
   /* ================= UI ================= */

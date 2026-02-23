@@ -22,14 +22,12 @@ function validEmail(email) {
 
 /* ================= TRANSPORT (SECURE TLS) ================= */
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.SYSTEM_EMAIL,
     pass: process.env.SYSTEM_EMAIL_APP_PASSWORD
-  },
-  tls: {
-    rejectUnauthorized: true,
-    minVersion: "TLSv1.2"
   }
 });
 
@@ -82,23 +80,62 @@ function buildEmailForEvent(eventType, data) {
         referenceId: data.evidenceId
       };
 
+      case "USER_APPROVED":
+  return {
+    to: data.email,
+    subject: `[Police CEMS] Account Approved`,
+    html: `
+      <div style="font-family: Arial; background:#020617; color:#e5e7eb; padding:24px;">
+        <h2 style="color:#22c55e;">Account Approved</h2>
+        <p>Hello ${escapeHTML(data.fullName)},</p>
+        <p>Your officer account has been approved by the administrator.</p>
+        <table style="margin-top:16px;">
+          <tr><td><b>Login ID</b></td><td>${escapeHTML(data.loginId)}</td></tr>
+        </table>
+        <p style="margin-top:16px;">
+          You may now login to Police CEMS.
+        </p>
+      </div>
+    `,
+    referenceId: data.userId
+  };
+
+  case "USER_BLOCKED":
+  return {
+    to: data.email,
+    subject: `[Police CEMS] Account Blocked`,
+    html: `
+      <div style="font-family: Arial; background:#020617; color:#e5e7eb; padding:24px;">
+        <h2 style="color:#ef4444;">Account Blocked</h2>
+        <p>Hello ${escapeHTML(data.fullName)},</p>
+        <p>Your account has been blocked by the administrator.</p>
+        <p>If you believe this is a mistake, please contact the system administrator.</p>
+      </div>
+    `,
+    referenceId: data.userId
+  };
+
     /* ========================================= */
     case "USER_REGISTERED_NOTIFICATION":
-      return {
-        to: data.email,
-        subject: `[Police CEMS] Officer Account Registered`,
-        html: `
-        <div style="font-family: Arial; background:#020617; color:#e5e7eb; padding:24px;">
-          <h2 style="color:#22c55e;">Officer Account Created</h2>
-          <table style="margin-top:16px;">
-            <tr><td>Name</td><td>${escapeHTML(data.fullName)}</td></tr>
-            <tr><td>Login ID</td><td>${escapeHTML(data.loginId)}</td></tr>
-            <tr><td>Email</td><td>${escapeHTML(data.email)}</td></tr>
-          </table>
-        </div>
-        `,
-        referenceId: data.userId
-      };
+  return {
+    to: process.env.SYSTEM_EMAIL, // SEND TO ADMIN
+    subject: `[Police CEMS] New Officer Registration – ${escapeHTML(data.loginId)}`,
+    html: `
+      <div style="font-family: Arial; background:#020617; color:#e5e7eb; padding:24px;">
+        <h2 style="color:#facc15;">New Officer Registration Pending Approval</h2>
+        <table style="margin-top:16px;">
+          <tr><td><b>Name</b></td><td>${escapeHTML(data.fullName)}</td></tr>
+          <tr><td><b>Login ID</b></td><td>${escapeHTML(data.loginId)}</td></tr>
+          <tr><td><b>Email</b></td><td>${escapeHTML(data.email)}</td></tr>
+          <tr><td><b>Role</b></td><td>${escapeHTML(data.role)}</td></tr>
+        </table>
+        <p style="margin-top:16px;font-size:12px;color:#9ca3af;">
+          Action required: Please review and approve this account.
+        </p>
+      </div>
+    `,
+    referenceId: data.userId
+  };
 
     /* ========================================= */
     case "EVIDENCE_TRANSFERRED":

@@ -109,10 +109,9 @@ const createStation = async () => {
 
 const toggleStatus = async (station) => {
   try {
-    await secureFetch(
-      `http://localhost:5000/api/admin/stations/${station.id}`,
-      {
-        method: "PATCH",
+        await secureFetch(
+  `http://localhost:5000/api/admin/stations/${station.id}/toggle`,
+  { method: "PATCH",
         body: JSON.stringify({
           ...station,
           status: station.status === "active"
@@ -282,7 +281,7 @@ return (
 
   {/* PAGINATION */}
 
-  <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center items-center gap-3 py-6 border-t border-slate-800">
 
     <button
       disabled={page === 1}
@@ -321,9 +320,6 @@ return (
     </button>
 
   </div>
-
-
-  {/* CREATE MODAL */}
 
   {/* CREATE MODAL */}
 {showCreateModal && (

@@ -2,39 +2,30 @@ const jwt = require("jsonwebtoken");
 const pool = require("../db");
 
 module.exports = async (req, res, next) => {
-
   try {
 
     /* ================= AUTH HEADER VALIDATION ================= */
 
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         error: "Authentication required"
       });
     }
 
-    if (!authHeader.startsWith("Bearer ")) {
+    const token = authHeader.slice(7).trim();
+
+    if (!token) {
       return res.status(401).json({
-        error: "Invalid authorization format"
+        error: "Invalid token"
       });
     }
-
-    const token = authHeader.split(" ")[1];
-
-    if (!token || token.length < 10) {
-      return res.status(401).json({
-        error: "Invalid token provided"
-      });
-    }
-
-    /* ================= JWT SECRET CHECK ================= */
 
     if (!process.env.JWT_SECRET) {
       console.error("CRITICAL: JWT_SECRET missing");
       return res.status(500).json({
-        error: "Server misconfiguration"
+        error: "Server configuration error"
       });
     }
 
@@ -52,41 +43,50 @@ module.exports = async (req, res, next) => {
       });
     }
 
-    /* ================= VERIFY USER STILL EXISTS ================= */
+    /* ================= VERIFY USER FROM DATABASE ================= */
 
     const result = await pool.query(
-      `
-      SELECT
-        id,
-        full_name,
-        email,
-        role,
-        status
-      FROM users
-      WHERE id = $1
-      `,
+      `SELECT id, full_name, email, role, status
+       FROM users
+       WHERE id = $1`,
       [decoded.userId]
     );
 
-    if (result.rows.length === 0) {
+    if (!result.rows.length) {
       return res.status(401).json({
-        error: "User account no longer exists"
+        error: "User no longer exists"
       });
     }
 
     const user = result.rows[0];
 
-    /* ================= ACCOUNT STATUS VALIDATION ================= */
+    /* ================= STRICT STATUS ENFORCEMENT ================= */
 
-    if (user.status === "blocked") {
+    if (user.status !== "approved") {
+
+      const statusMessages = {
+        pending: "Account pending admin approval",
+        blocked: "Account blocked by administrator"
+      };
+
       return res.status(403).json({
-        error: "Account blocked by administrator"
+        error: statusMessages[user.status] || "Access denied"
       });
     }
 
-    if (user.status === "pending") {
+    /* ================= OPTIONAL ROLE VALIDATION ================= */
+
+    const allowedRoles = [
+      "admin",
+      "officer",
+      "Constable",
+      "Inspector",
+      "SP"
+    ];
+
+    if (!allowedRoles.includes(user.role)) {
       return res.status(403).json({
-        error: "Account not yet approved by administrator"
+        error: "Invalid user role"
       });
     }
 
@@ -101,8 +101,7 @@ module.exports = async (req, res, next) => {
 
     next();
 
-  }
-  catch (err) {
+  } catch (err) {
 
     if (err.name === "TokenExpiredError") {
       return res.status(401).json({
@@ -112,7 +111,7 @@ module.exports = async (req, res, next) => {
 
     if (err.name === "JsonWebTokenError") {
       return res.status(401).json({
-        error: "Invalid or malformed token."
+        error: "Invalid or malformed token"
       });
     }
 
@@ -121,7 +120,5 @@ module.exports = async (req, res, next) => {
     return res.status(401).json({
       error: "Authentication failed"
     });
-
   }
-
 };
