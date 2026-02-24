@@ -188,6 +188,14 @@ router.post("/create", auth, async (req, res) => {
     client.release();
   }
 
+  const stationCheck = await pool.query( `SELECT status FROM stations WHERE name = $1`, [station_name] );
+  if (stationCheck.rows.length === 0) {
+    return res.status(404).json({ error: "Station not found" });
+  }
+  if (stationCheck.rows[0].status !== "active") {
+    return res.status(403).json({ error: "Station is disabled" });
+  }
+
   /* ---------- EMAIL SIDE EFFECT ---------- */
   try {
     await sendEventEmail({

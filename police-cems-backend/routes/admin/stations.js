@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require("../../db");
 const auth = require("../../middleware/authMiddleware");
 const requireAdmin = require("../../middleware/adminMiddleware");
+const { sendEventEmail } = require("../../services/emailService");
 
 /* =====================================================
    GET ALL STATIONS
@@ -188,34 +189,88 @@ router.post("/", auth, requireAdmin, async (req, res) => {
    ACTIVATE / DEACTIVATE STATION
    Never delete stations
 ===================================================== */
+/* =====================================================
+   ACTIVATE / DEACTIVATE STATION
+===================================================== */
 router.patch("/:id/toggle", auth, requireAdmin, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      UPDATE stations
-      SET status = CASE
-        WHEN status = 'active' THEN 'inactive'
-        ELSE 'active'
-      END
-      WHERE id = $1
-      RETURNING id, name, status
-    `, [req.params.id]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        error: "Station not found"
-      });
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    /* ================= TOGGLE STATUS ================= */
+
+    const stationResult = await client.query(
+      `UPDATE stations
+       SET status = CASE
+           WHEN status = 'active' THEN 'inactive'
+           ELSE 'active'
+       END
+       WHERE id = $1
+       RETURNING id, name, status`,
+      [req.params.id]
+    );
+
+    if (stationResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Station not found" });
+    }
+
+    const station = stationResult.rows[0];
+
+    /* ================= FETCH ASSIGNED OFFICERS ================= */
+
+    const officersResult = await client.query(
+      `SELECT u.email, u.full_name
+       FROM users u
+       JOIN officer_station_assignments osa
+         ON osa.officer_id = u.id
+       WHERE osa.station_name = $1
+       AND osa.relieved_at IS NULL`,
+      [station.name]
+    );
+
+    await client.query("COMMIT");
+
+    /* ================= SEND EMAILS SAFELY ================= */
+
+    for (const officer of officersResult.rows) {
+      try {
+        await sendEventEmail({
+          eventType: "STATION_STATUS_CHANGED",
+          data: {
+            email: officer.email,
+            fullName: officer.full_name,
+            stationName: station.name,
+            status: station.status
+          },
+          db: pool
+        });
+      } catch (emailErr) {
+        console.error(
+          "Station toggle email failed:",
+          emailErr.message
+        );
+      }
     }
 
     res.json({
       success: true,
-      station: result.rows[0]
+      status: station.status
     });
 
   } catch (err) {
-    console.error("Toggle station error:", err.message);
+
+    await client.query("ROLLBACK");
+    console.error("Station toggle error:", err);
+
     res.status(500).json({
       error: "Failed to toggle station"
     });
+
+  } finally {
+    client.release();
   }
 });
 

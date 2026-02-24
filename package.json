@@ -1,0 +1,24 @@
+{
+  "name": "case-management-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "dev": "concurrently \"cd police-cems-backend && node server.js\" \"cd police-cems-frontend && npm run dev\""
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ashiish-23/Case_Management_System.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Ashiish-23/Case_Management_System/issues"
+  },
+  "homepage": "https://github.com/Ashiish-23/Case_Management_System#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
