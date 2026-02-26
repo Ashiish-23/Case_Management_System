@@ -1,9 +1,15 @@
 import { useState } from "react";
+import StationAutocomplete from "./StationsAutocomplete";
 
 /* ================= SECURITY CONSTANTS ================= */
 const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const ALLOWED_MIME = [ "image/jpeg", "image/png", "image/webp", "image/jpg" ];
+const ALLOWED_MIME = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/jpg"
+];
 
 /* ================= HELPERS ================= */
 function safeText(v) {
@@ -23,8 +29,11 @@ async function secureFetch(url, options = {}, timeout = 15000) {
 }
 
 /* ================= COMPONENT ================= */
-export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
-
+export default function AddEvidenceModal({
+  caseId,
+  onClose,
+  onAdded
+}) {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [seizedAtStation, setSeizedAtStation] = useState("");
@@ -33,14 +42,17 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
 
   /* ================= FILE VALIDATION ================= */
   function validateFile(file) {
-
     if (!file) return "File is required";
 
-    if (!ALLOWED_MIME.includes(file.type)) { return "Only JPG, PNG, WEBP, jpg images allowed"; }
+    if (!ALLOWED_MIME.includes(file.type)) {
+      return "Only JPG, PNG, WEBP images allowed";
+    }
 
-    if (file.size > MAX_FILE_SIZE_BYTES) { 
+    if (file.size > MAX_FILE_SIZE_BYTES) {
       return `File too large. Max ${MAX_FILE_SIZE_MB}MB allowed`;
-    } return null;
+    }
+
+    return null;
   }
 
   /* ================= SUBMIT ================= */
@@ -68,12 +80,12 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
       return;
     }
 
-    const form = new FormData();
-    form.append("caseId", caseId);
-    form.append("description", desc);
-    form.append("category", cat);
-    form.append("seizedAtStation", station);
-    form.append("image", image);
+    const formData = new FormData();
+    formData.append("caseId", caseId);
+    formData.append("description", desc);
+    formData.append("category", cat);
+    formData.append("seizedAtStation", station);
+    formData.append("image", image);
 
     setLoading(true);
 
@@ -85,17 +97,11 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
           headers: {
             Authorization: "Bearer " + token
           },
-          body: form
+          body: formData
         }
       );
 
-      let payload = null;
-
-      try {
-        payload = await res.json();
-      } catch {
-        throw new Error("Invalid server response");
-      }
+      const payload = await res.json().catch(() => null);
 
       if (res.status === 401 || res.status === 403) {
         sessionStorage.clear();
@@ -107,15 +113,12 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
         throw new Error(payload?.error || "Failed to add evidence");
       }
 
-      if (payload.emailSent === false) {
-        alert(payload.emailError || "Evidence saved but email failed");
-      } else {
-        alert("Evidence added successfully");
-      }
+      alert("Evidence added successfully");
+
       onAdded?.();
       onClose();
-    } catch (err) {
 
+    } catch (err) {
       if (err.name === "AbortError") {
         alert("Upload timeout. Please try again.");
       } else {
@@ -130,7 +133,6 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
   /* ================= FILE SELECT ================= */
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-
     if (!file) return;
 
     const error = validateFile(file);
@@ -139,6 +141,7 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
       e.target.value = "";
       return;
     }
+
     setImage(file);
   };
 
@@ -146,7 +149,8 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
   const inputStyle =
     "w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500";
 
-  const labelStyle = "block text-xs font-medium text-white mb-1 uppercase tracking-wider";
+  const labelStyle =
+    "block text-xs font-medium text-white mb-1 uppercase tracking-wider";
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
@@ -160,35 +164,31 @@ export default function AddEvidenceModal({ caseId, onClose, onAdded }) {
         <form onSubmit={submit} className="p-6 space-y-5">
           <div>
             <label className={labelStyle}>Description *</label>
-            <textarea value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24 resize-none`} required />
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} className={`${inputStyle} h-24 resize-none`} required/>
           </div>
 
           <div>
             <label className={labelStyle}>Category *</label>
-            <input value={category} onChange={e => setCategory(e.target.value)} className={inputStyle} required />
+            <input value={category} onChange={(e) => setCategory(e.target.value)} className={inputStyle} required />
           </div>
 
           <div>
-            <label className={labelStyle}>Station Name *</label>
-            <input value={seizedAtStation} onChange={e => setSeizedAtStation(e.target.value)} className={inputStyle} required />
+            <label className={labelStyle}>Seized At Station *</label>
+            <StationAutocomplete value={seizedAtStation} onSelect={(station) => setSeizedAtStation(station.name) } />
           </div>
 
           <div>
-            <label className={labelStyle}>
-              Upload Image (Max {MAX_FILE_SIZE_MB}MB) *
+            <label className={labelStyle}> Upload Image (Max {MAX_FILE_SIZE_MB}MB) *
             </label>
-            <input type="file" accept=".jpg,.jpeg,.png,.webp" required onChange={handleFileChange} className="text-white text-sm rounded-lg px-3 py-2" />
+            <input type="file" accept=".jpg,.jpeg,.png,.webp" required onChange={handleFileChange} className="text-white text-sm rounded-lg px-3 py-2"/>
           </div>
 
           <div className="pt-4 border-t border-slate-700 flex justify-end gap-3">
-            <button
-              type="button" onClick={onClose} disabled={loading} className="text-white px-4 py-2 hover:bg-slate-700 rounded-lg disabled:opacity-50" >
-                 Cancel
-            </button>
+            <button type="button" onClick={onClose} disabled={loading} 
+              className="text-white px-4 py-2 hover:bg-slate-700 rounded-lg disabled:opacity-50">Cancel </button>
 
-            <button type="submit" disabled={loading} className="bg-blue-600 px-6 py-2 rounded-lg text-white hover:bg-blue-700 disabled:opacity-50" >
-              {loading ? "Saving..." : "Save Evidence"}
-            </button>
+            <button type="submit" disabled={loading} className="bg-blue-600 px-6 py-2 rounded-lg text-white hover:bg-blue-700 disabled:opacity-50"
+            > {loading ? "Saving..." : "Save Evidence"} </button>
           </div>
         </form>
       </div>

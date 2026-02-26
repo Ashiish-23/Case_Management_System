@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import StationAutocomplete from "../components/StationsAutocomplete";
 
 export default function CreateCase() {
   const navigate = useNavigate();
@@ -174,8 +175,7 @@ export default function CreateCase() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className={labelStyle}>Station Name *</label>
-              <input name="stationName" onChange={change} required className={inputStyle} />
+              <StationAutocomplete value={form.station_name} onSelect={(station) => setForm({ ...form, station_name: station.name }) } />
             </div>
 
             <div>

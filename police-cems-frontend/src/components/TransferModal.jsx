@@ -1,4 +1,5 @@
 import { useState } from "react";
+import StationAutocomplete from "./StationsAutocomplete";
 
 export default function TransferModal({ evidence, onClose }) {
 
@@ -129,7 +130,7 @@ export default function TransferModal({ evidence, onClose }) {
         <div className="p-6 space-y-4 text-white">
           <input disabled value={evidence?.evidence_code || ""} className="w-full bg-slate-800 p-2 rounded border" />
           <input disabled value={evidence?.current_station || "Unknown"} className="w-full bg-slate-800 p-2 rounded border" />
-          <input required value={toStation} maxLength={120} onChange={e => setToStation(e.target.value)} placeholder="To Location" className="w-full bg-slate-800 p-2 rounded border"/>
+          <StationAutocomplete value={toStation} onSelect={(station) => setToStation(station.name) } /> 
           <input required value={officerId} maxLength={80} onChange={e => setOfficerId(e.target.value)} placeholder="Officer ID" className="w-full bg-slate-800 p-2 rounded border" />
           <input required value={officerEmail} maxLength={120} onChange={e => setOfficerEmail(e.target.value)} placeholder="Officer Email" className="w-full bg-slate-800 p-2 rounded border" />
           <textarea required rows={3} maxLength={500} value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Reason / Remarks" className="w-full bg-slate-800 p-2 rounded border" />
