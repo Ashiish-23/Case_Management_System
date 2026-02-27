@@ -31,25 +31,19 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-/* ================= LOW LEVEL SEND ================= */
-async function sendEmail({ to, subject, html }) {
-  if (!validEmail(to)) {
-    throw new Error("Invalid recipient email");
-  }
-
-  return transporter.sendMail({
-    from: `"Police CEMS" <${process.env.SYSTEM_EMAIL}>`,
-    to,
-    subject,
-    html
-  });
-}
-
 /* ================= SAFE SEND ================= */
 async function safeSendEmail(options) {
   try {
-    await sendEmail(options);
+    if (!validEmail(options.to))
+      throw new Error("Invalid recipient email");
+
+    await transporter.sendMail({
+      from: `"Police CEMS" <${process.env.SYSTEM_EMAIL}>`,
+      ...options
+    });
+
     return { ok: true };
+
   } catch (err) {
     console.error("SMTP ERROR:", err.message);
     return { ok: false, error: err.message };
@@ -58,21 +52,22 @@ async function safeSendEmail(options) {
 
 /* ================= EVENT BUILDER ================= */
 function buildEmailForEvent(eventType, data) {
+
   switch (eventType) {
 
-    case "EVIDENCE_CREATED":
+    /* ================= USER EVENTS ================= */
+
+    case "USER_REGISTERED_NOTIFICATION":
       return {
-        to: data.email,
-        subject: `[Police CEMS] Evidence Logged – ${escapeHTML(data.evidenceCode)}`,
+        to: process.env.SYSTEM_EMAIL,
+        subject: `[Police CEMS] New Officer Registration – ${escapeHTML(data.loginId)}`,
         html: `
-          <div style="font-family: Arial; padding:24px;">
-            <h2>Evidence Logged</h2>
-            <p>Evidence: ${escapeHTML(data.evidenceCode)}</p>
-            <p>Case: ${escapeHTML(data.caseNumber)}</p>
-            <p>Station: ${escapeHTML(data.station)}</p>
-          </div>
+          <h2>New Officer Registration</h2>
+          <p>Name: ${escapeHTML(data.fullName)}</p>
+          <p>Email: ${escapeHTML(data.email)}</p>
+          <p>Role: ${escapeHTML(data.role)}</p>
         `,
-        referenceId: data.evidenceId
+        referenceId: data.userId
       };
 
     case "USER_APPROVED":
@@ -80,11 +75,9 @@ function buildEmailForEvent(eventType, data) {
         to: data.email,
         subject: `[Police CEMS] Account Approved`,
         html: `
-          <div style="font-family: Arial; padding:24px;">
-            <h2>Account Approved</h2>
-            <p>Hello ${escapeHTML(data.fullName)}</p>
-            <p>Your account is now active.</p>
-          </div>
+          <h2>Account Approved</h2>
+          <p>Hello ${escapeHTML(data.fullName)}</p>
+          <p>Your account has been approved.</p>
         `,
         referenceId: data.userId
       };
@@ -94,26 +87,35 @@ function buildEmailForEvent(eventType, data) {
         to: data.email,
         subject: `[Police CEMS] Account Blocked`,
         html: `
-          <div style="font-family: Arial; padding:24px;">
-            <h2>Account Blocked</h2>
-            <p>Hello ${escapeHTML(data.fullName)}</p>
-            <p>Your account has been blocked.</p>
-          </div>
+          <h2>Account Blocked</h2>
+          <p>Hello ${escapeHTML(data.fullName)}</p>
+          <p>Your account has been blocked.</p>
         `,
         referenceId: data.userId
       };
 
-    case "USER_REGISTERED_NOTIFICATION":
+    case "USER_ROLE_CHANGED":
       return {
-        to: process.env.SYSTEM_EMAIL,
-        subject: `[Police CEMS] New Registration – ${escapeHTML(data.loginId)}`,
+        to: data.email,
+        subject: `[Police CEMS] Role Updated`,
         html: `
-          <div style="font-family: Arial; padding:24px;">
-            <h2>New Officer Registration</h2>
-            <p>Name: ${escapeHTML(data.fullName)}</p>
-            <p>Login ID: ${escapeHTML(data.loginId)}</p>
-            <p>Email: ${escapeHTML(data.email)}</p>
-          </div>
+          <h2>Role Updated</h2>
+          <p>Hello ${escapeHTML(data.fullName)}</p>
+          <p>Your role has been updated to: <b>${escapeHTML(data.newRole)}</b></p>
+        `,
+        referenceId: data.userId
+      };
+
+    /* ================= STATION EVENTS ================= */
+
+    case "STATION_ASSIGNED":
+      return {
+        to: data.email,
+        subject: `[Police CEMS] Station Assignment`,
+        html: `
+          <h2>Station Assigned</h2>
+          <p>Hello ${escapeHTML(data.fullName)}</p>
+          <p>You have been assigned to: <b>${escapeHTML(data.stationName)}</b></p>
         `,
         referenceId: data.userId
       };
@@ -123,14 +125,75 @@ function buildEmailForEvent(eventType, data) {
         to: data.email,
         subject: `[Police CEMS] Station Status Updated`,
         html: `
-          <div style="font-family: Arial; padding:24px;">
-            <h2>Station Status Changed</h2>
-            <p>Hello ${escapeHTML(data.fullName)}</p>
-            <p>Station: ${escapeHTML(data.stationName)}</p>
-            <p>Status: ${escapeHTML(data.status)}</p>
-          </div>
+          <h2>Station Status Changed</h2>
+          <p>Station: ${escapeHTML(data.stationName)}</p>
+          <p>New Status: <b>${escapeHTML(data.status)}</b></p>
         `,
         referenceId: data.stationName
+      };
+
+    /* ================= CASE / EVIDENCE EVENTS ================= */
+
+    case "CASE_CREATED":
+      return {
+        to: data.email,
+        subject: `[Police CEMS] New Case Created – ${escapeHTML(data.caseNumber)}`,
+        html: `
+          <h2>Case Created</h2>
+          <p>Case Number: ${escapeHTML(data.caseNumber)}</p>
+          <p>Station: ${escapeHTML(data.station)}</p>
+        `,
+        referenceId: data.caseId
+      };
+
+    case "EVIDENCE_CREATED":
+      return {
+        to: data.email,
+        subject: `[Police CEMS] Evidence Logged – ${escapeHTML(data.evidenceCode)}`,
+        html: `
+          <h2>Evidence Logged</h2>
+          <p>Evidence: ${escapeHTML(data.evidenceCode)}</p>
+          <p>Case: ${escapeHTML(data.caseNumber)}</p>
+        `,
+        referenceId: data.evidenceId
+      };
+
+    case "EVIDENCE_TRANSFERRED":
+      return {
+        to: data.email,
+        subject: `[Police CEMS] Evidence Transfer – ${escapeHTML(data.evidenceCode)}`,
+        html: `
+          <h2>Evidence Transferred</h2>
+          <p>Evidence: ${escapeHTML(data.evidenceCode)}</p>
+          <p>From: ${escapeHTML(data.fromStation)}</p>
+          <p>To: ${escapeHTML(data.toStation)}</p>
+        `,
+        referenceId: data.transferId
+      };
+
+    /* ================= PASSWORD EVENTS ================= */
+
+    case "PASSWORD_RESET_REQUESTED":
+      return {
+        to: data.email,
+        subject: `[Police CEMS] Password Reset`,
+        html: `
+          <h2>Password Reset Requested</h2>
+          <p>Hello ${escapeHTML(data.fullName)}</p>
+          <a href="${escapeHTML(data.resetLink)}">Reset Password</a>
+        `,
+        referenceId: data.userId
+      };
+
+    case "PASSWORD_CHANGED":
+      return {
+        to: data.email,
+        subject: `[Police CEMS] Password Updated`,
+        html: `
+          <h2>Password Changed</h2>
+          <p>Your password was successfully updated.</p>
+        `,
+        referenceId: data.userId
       };
 
     default:
@@ -138,7 +201,7 @@ function buildEmailForEvent(eventType, data) {
   }
 }
 
-/* ================= GUARANTEED LEDGER ================= */
+/* ================= LEDGER GUARANTEED ================= */
 async function sendEventEmail({ eventType, data, db }) {
 
   let to = null;
@@ -149,7 +212,6 @@ async function sendEventEmail({ eventType, data, db }) {
 
   try {
     const built = buildEmailForEvent(eventType, data);
-
     to = built.to;
     subject = built.subject;
     html = built.html;
@@ -158,26 +220,21 @@ async function sendEventEmail({ eventType, data, db }) {
     result = await safeSendEmail({ to, subject, html });
 
   } catch (err) {
-    console.error("Email build/send failure:", err.message);
     result = { ok: false, error: err.message };
   }
 
-  try {
-    await db.query(`
-      INSERT INTO email_ledger
-      (event_type, recipient_email, subject, reference_id, delivery_status, error_message, attempted_at)
-      VALUES ($1,$2,$3,$4,$5,$6,NOW())
-    `, [
-      eventType,
-      to,
-      subject,
-      referenceId,
-      result.ok ? "SENT" : "FAILED",
-      result.ok ? null : result.error
-    ]);
-  } catch (ledgerErr) {
-    console.error("Ledger insert failed:", ledgerErr.message);
-  }
+  await db.query(`
+    INSERT INTO email_ledger
+    (event_type, recipient_email, subject, reference_id, delivery_status, error_message, attempted_at)
+    VALUES ($1,$2,$3,$4,$5,$6,NOW())
+  `, [
+    eventType,
+    to || "system@unknown.local",
+    subject || "UNKNOWN_EVENT",
+    referenceId,
+    result.ok ? "SENT" : "FAILED",
+    result.ok ? null : result.error
+  ]);
 
   return result;
 }

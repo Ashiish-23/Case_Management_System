@@ -4,7 +4,7 @@ const pool = require("../db");
 module.exports = async (req, res, next) => {
   try {
 
-    /* ================= AUTH HEADER VALIDATION ================= */
+    /* ================= AUTH HEADER ================= */
 
     const authHeader = req.headers.authorization;
 
@@ -29,7 +29,7 @@ module.exports = async (req, res, next) => {
       });
     }
 
-    /* ================= VERIFY TOKEN ================= */
+    /* ================= VERIFY JWT ================= */
 
     const decoded = jwt.verify(
       token,
@@ -43,7 +43,7 @@ module.exports = async (req, res, next) => {
       });
     }
 
-    /* ================= VERIFY USER FROM DATABASE ================= */
+    /* ================= LOAD USER ================= */
 
     const result = await pool.query(
       `SELECT id, full_name, email, role, status
@@ -60,41 +60,29 @@ module.exports = async (req, res, next) => {
 
     const user = result.rows[0];
 
-    /* ================= STRICT STATUS ENFORCEMENT ================= */
+    /* ================= STATUS ENFORCEMENT ================= */
 
-    if (user.status !== "approved") {
+    const status = (user.status || "").toLowerCase().trim();
 
-      const statusMessages = {
-        pending: "Account pending admin approval",
-        blocked: "Account blocked by administrator"
-      };
-
+    if (status === "blocked") {
       return res.status(403).json({
-        error: statusMessages[user.status] || "Access denied"
+        error: "Account blocked"
       });
     }
 
-    /* ================= OPTIONAL ROLE VALIDATION ================= */
-
-    const allowedRoles = [
-      "admin",
-      "officer",
-      "Constable",
-      "Inspector",
-      "SP"
-    ];
-
-    if (!allowedRoles.includes(user.role)) {
+    if (status !== "approved") {
       return res.status(403).json({
-        error: "Invalid user role"
+        error: status === "pending"
+          ? "Account pending admin approval"
+          : "Access denied"
       });
     }
 
-    /* ================= SAFE USER CONTEXT ================= */
+    /* ================= SAFE CONTEXT ================= */
 
     req.user = Object.freeze({
       userId: user.id,
-      role: user.role,
+      role: (user.role || "").toUpperCase().trim(),
       name: user.full_name,
       email: user.email
     });
@@ -121,4 +109,4 @@ module.exports = async (req, res, next) => {
       error: "Authentication failed"
     });
   }
-};
+}; 

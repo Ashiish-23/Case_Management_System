@@ -41,6 +41,8 @@ router.get("/", auth, requireAdmin, async (req, res) => {
         s.status,
         s.created_at,
         s.updated_at,
+        s.contact_email,
+        s.contact_phone,
         /* ACTIVE OFFICERS COUNT */
         (
           SELECT COUNT(*)
@@ -93,7 +95,10 @@ router.get("/search", auth, async (req, res) => {
         id,
         name,
         city,
-        district
+        district,
+        contact_phone,
+        contact_email,
+        code
       FROM stations
       WHERE
         status = 'active'
@@ -188,9 +193,6 @@ router.post("/", auth, requireAdmin, async (req, res) => {
 /* =====================================================
    ACTIVATE / DEACTIVATE STATION
    Never delete stations
-===================================================== */
-/* =====================================================
-   ACTIVATE / DEACTIVATE STATION
 ===================================================== */
 router.patch("/:id/toggle", auth, requireAdmin, async (req, res) => {
 

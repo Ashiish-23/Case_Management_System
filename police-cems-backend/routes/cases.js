@@ -45,25 +45,18 @@ async function generateCaseNumber(client) {
 /* =========================================================
    CREATE CASE
 ========================================================= */
-
 router.post("/create", auth, async (req, res) => {
 
   const client = await pool.connect();
-  const stationCheck = await pool.query(`SELECT status FROM stations WHERE name = $1`, [station_name]);
-  
-  if (stationCheck.rows.length === 0) {
-    return res.status(404).json({ error: "Station not found" });
-  }
-  
-  if (stationCheck.rows[0].status !== "active") {
-    return res.status(403).json({ error: "Station is disabled" });
-  }
 
   try {
+    await client.query("BEGIN");
+
     const officerId = req.user.userId;
 
-    if (!isValidUUID(officerId))
+    if (!isValidUUID(officerId)) {
       return res.status(401).json({ error: "Invalid identity" });
+    }
 
     const {
       caseTitle,
@@ -71,16 +64,64 @@ router.post("/create", auth, async (req, res) => {
       description,
       officerName,
       officerRank,
-      stationName,
-      firNumber
+      firNumber,
+      stationName // Only used if admin
     } = req.body;
 
-    await client.query("BEGIN");
+    /* ================= DETERMINE STATION ================= */
+
+    let finalStationName = null;
+
+    if (req.user.role === "admin") {
+
+      // Admin can specify station
+      if (!stationName)
+        return res.status(400).json({ error: "Station required" });
+
+      finalStationName = cleanText(stationName, 120);
+
+    } else {
+
+      // Officer → auto derive station
+      const stationResult = await client.query(`
+        SELECT station_name
+        FROM officer_station_assignments
+        WHERE officer_id = $1
+        AND relieved_at IS NULL
+      `, [officerId]);
+
+      if (!stationResult.rows.length) {
+        return res.status(403).json({
+          error: "Officer not assigned to any active station"
+        });
+      }
+
+      finalStationName = stationResult.rows[0].station_name;
+    }
+
+    /* ================= VALIDATE STATION STATUS ================= */
+
+    const stationCheck = await client.query(`
+      SELECT status
+      FROM stations
+      WHERE name = $1
+    `, [finalStationName]);
+
+    if (!stationCheck.rows.length) {
+      return res.status(404).json({ error: "Station not found" });
+    }
+
+    if (stationCheck.rows[0].status !== "active") {
+      return res.status(403).json({ error: "Station is disabled" });
+    }
+
+    /* ================= GENERATE CASE NUMBER ================= */
 
     const caseNumber = await generateCaseNumber(client);
 
-    await client.query(
-      `
+    /* ================= INSERT CASE ================= */
+
+    await client.query(`
       INSERT INTO cases (
         case_number,
         fir_number,
@@ -94,49 +135,32 @@ router.post("/create", auth, async (req, res) => {
         created_by
       )
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-      `,
-      [
-        caseNumber,
-        cleanText(firNumber,60),
-        cleanText(stationName,120),
-        cleanText(officerName,120),
-        cleanText(officerRank,60),
-        officerId,
-        cleanText(caseTitle,150),
-        cleanText(description,2000),
-        cleanText(caseType,80),
-        officerId
-      ]
-    );
+    `, [
+      caseNumber,
+      cleanText(firNumber, 60),
+      finalStationName,
+      cleanText(officerName, 120),
+      cleanText(officerRank, 60),
+      officerId,
+      cleanText(caseTitle, 150),
+      cleanText(description, 2000),
+      cleanText(caseType, 80),
+      officerId
+    ]);
 
     await client.query("COMMIT");
 
-    res.json({ success:true, caseNumber });
+    res.json({ success: true, caseNumber });
 
-    await createAuditLog({
-      actorUserId: req.user.userId,
-      actorName: req.user.name,
-      actionType: "CASE_CREATED",
-      targetType: "CASE",
-      targetId: caseNumber,
-      details: { case_number: caseNumber },
-      ipAddress: req.ip
-    });
-
-  }
-  catch(err){
+  } catch (err) {
 
     await client.query("ROLLBACK");
+    console.error("Case creation error:", err);
+    res.status(500).json({ error: "Case creation failed" });
 
-    console.error(err);
-
-    res.status(500).json({ error:"Case creation failed" });
-
-  }
-  finally{
+  } finally {
     client.release();
   }
-
 });
 
 

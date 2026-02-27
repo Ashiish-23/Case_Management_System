@@ -38,23 +38,16 @@ const upload = multer({
    ADD EVIDENCE
 ========================= */
 router.post("/add", auth, upload.single("image"), async (req, res) => {
+
   const client = await pool.connect();
 
-  let evidenceId;
-  let evidenceCode;
-  let caseNumber;
-
   try {
-    const officerId = req.user.userId;
-    const { caseId, description, category, seizedAtStation } = req.body;
+    await client.query("BEGIN");
 
-    if (
-      !caseId ||
-      typeof description !== "string" ||
-      typeof category !== "string" ||
-      typeof seizedAtStation !== "string" ||
-      !req.file
-    ) {
+    const officerId = req.user.userId;
+    const { caseId, description, category } = req.body;
+
+    if (!caseId || !description || !category || !req.file) {
       return res.status(400).json({
         error: "All fields including valid image are required"
       });
@@ -64,23 +57,72 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
       return res.status(400).json({ error: "Input too long" });
     }
 
-    const station = seizedAtStation.trim();
-    if (station.length < 2 || station.length > 100) {
-      return res.status(400).json({ error: "Invalid station name" });
+    /* ================= GET OFFICER STATION ================= */
+
+    let officerStation = null;
+
+    if (req.user.role === "admin") {
+
+      officerStation = req.body.seizedAtStation?.trim();
+      if (!officerStation)
+        return res.status(400).json({ error: "Station required" });
+
+    } else {
+
+      const stationRes = await client.query(`
+        SELECT station_name
+        FROM officer_station_assignments
+        WHERE officer_id = $1
+        AND relieved_at IS NULL
+      `, [officerId]);
+
+      if (!stationRes.rows.length) {
+        return res.status(403).json({
+          error: "Officer not assigned to active station"
+        });
+      }
+
+      officerStation = stationRes.rows[0].station_name;
     }
 
-    await client.query("BEGIN");
+    /* ================= VERIFY STATION ACTIVE ================= */
 
-    const caseRes = await client.query(
-      "SELECT case_number FROM cases WHERE id = $1",
-      [caseId]
-    );
+    const stationCheck = await client.query(`
+      SELECT status
+      FROM stations
+      WHERE name = $1
+    `, [officerStation]);
+
+    if (!stationCheck.rows.length) {
+      return res.status(404).json({ error: "Station not found" });
+    }
+
+    if (stationCheck.rows[0].status !== "active") {
+      return res.status(403).json({ error: "Station is disabled" });
+    }
+
+    /* ================= VERIFY CASE BELONGS TO STATION ================= */
+
+    const caseRes = await client.query(`
+      SELECT case_number, station_name
+      FROM cases
+      WHERE id = $1
+    `, [caseId]);
 
     if (!caseRes.rows.length) {
-      throw new Error("CASE_NOT_FOUND");
+      return res.status(404).json({ error: "Case not found" });
     }
 
-    caseNumber = caseRes.rows[0].case_number;
+    const caseNumber = caseRes.rows[0].case_number;
+    const caseStation = caseRes.rows[0].station_name;
+
+    if (req.user.role !== "admin" && caseStation !== officerStation) {
+      return res.status(403).json({
+        error: "You cannot add evidence to another station's case"
+      });
+    }
+
+    /* ================= GENERATE EVIDENCE CODE ================= */
 
     const codeRes = await client.query(`
       SELECT
@@ -88,10 +130,11 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
         LPAD(nextval('evidence_seq')::text, 6, '0') AS code
     `);
 
-    evidenceCode = codeRes.rows[0].code;
+    const evidenceCode = codeRes.rows[0].code;
 
-    const evidenceRes = await client.query(
-      `
+    /* ================= INSERT EVIDENCE ================= */
+
+    const evidenceInsert = await client.query(`
       INSERT INTO evidence (
         case_id,
         evidence_code,
@@ -103,22 +146,21 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
       )
       VALUES ($1,$2,$3,$4,$5,$6,$7)
       RETURNING id
-      `,
-      [
-        caseId,
-        evidenceCode,
-        description.trim(),
-        category.trim(),
-        req.file.filename,
-        officerId,
-        station
-      ]
-    );
+    `, [
+      caseId,
+      evidenceCode,
+      description.trim(),
+      category.trim(),
+      req.file.filename,
+      officerId,
+      officerStation
+    ]);
 
-    evidenceId = evidenceRes.rows[0].id;
+    const evidenceId = evidenceInsert.rows[0].id;
 
-    await client.query(
-      `
+    /* ================= INITIAL CUSTODY ================= */
+
+    await client.query(`
       INSERT INTO evidence_custody (
         evidence_id,
         case_id,
@@ -127,71 +169,62 @@ router.post("/add", auth, upload.single("image"), async (req, res) => {
         updated_at
       )
       VALUES ($1,$2,$3,$4,NOW())
-      `,
-      [evidenceId, caseId, officerId, station]
-    );
+    `, [
+      evidenceId,
+      caseId,
+      officerId,
+      officerStation
+    ]);
 
     await client.query("COMMIT");
 
+    /* ================= EMAIL SIDE EFFECT ================= */
+
+    try {
+      await sendEventEmail({
+        eventType: "EVIDENCE_CREATED",
+        data: {
+          email: req.user.email,
+          evidenceCode,
+          caseNumber,
+          evidenceId,
+          station: officerStation
+        },
+        db: pool
+      });
+    } catch (emailErr) {
+      console.error("Evidence email failed:", emailErr.message);
+    }
+
+    res.json({
+      success: true,
+      evidenceId,
+      evidenceCode
+    });
+
   } catch (err) {
+
     await client.query("ROLLBACK");
 
-    console.error("Add evidence failed:", err.message);
+    console.error("Add evidence failed:", err);
 
-    /* ⭐ CLEAR ERROR RESPONSES */
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
-        error: `File too large. Maximum allowed size is ${MAX_FILE_MB}MB`
+        error: `File too large. Maximum ${MAX_FILE_MB}MB`
       });
     }
 
     if (err.message === "INVALID_FILE_TYPE") {
       return res.status(400).json({
-        error: "Only JPG, PNG, WEBP images are allowed"
+        error: "Only JPG, PNG, WEBP allowed"
       });
     }
 
-    if (err.message === "CASE_NOT_FOUND") {
-      return res.status(404).json({ error: "Case not found" });
-    }
-
-    return res.status(500).json({ error: "Failed to add evidence" });
+    res.status(500).json({ error: "Failed to add evidence" });
 
   } finally {
     client.release();
   }
-
-  const stationCheck = await pool.query(`SELECT status FROM stations WHERE name = $1`, [station_name] );
-  
-  if (stationCheck.rows.length === 0) {
-    return res.status(404).json({ error: "Station not found" });
-  }
-  if (stationCheck.rows[0].status !== "active") {
-    return res.status(403).json({ error: "Station is disabled" });
-  }
-
-  /* ---------- EMAIL SIDE EFFECT ---------- */
-  try {
-    await sendEventEmail({
-      eventType: "EVIDENCE_CREATED",
-      data: {
-        email: req.user.email,
-        evidenceCode,
-        caseNumber,
-        evidenceId,
-        station: req.body.seizedAtStation
-      },
-      db: pool
-    });
-  } catch (err) {
-    console.error("Evidence email failed:", err.message);
-  }
-
-  res.json({
-    success: true,
-    evidenceId,
-    evidenceCode
-  });
 });
 
 /* =========================

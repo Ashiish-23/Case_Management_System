@@ -152,7 +152,8 @@ return (
         <tr>
           <th className="p-3 text-left">Station</th>
           <th className="p-3 text-left">Code</th>
-          <th className="p-3 text-left">City</th>
+          <th className="p-3 text-left">Contact</th>
+          <th className="p-3 text-left">Email</th>
           <th className="p-3 text-left">Status</th>
           <th className="p-3 text-left">Officers</th>
           <th className="p-3 text-left">Cases</th>
@@ -163,8 +164,9 @@ return (
         {stations.map(station => (
           <tr key={station.id} className="border-t border-slate-700">
             <td className="p-3 font-medium"> {station.name} </td>
-            <td className="p-3"> {station.code} </td>
-            <td className="p-3"> {station.city} </td>
+            <td className="p-3" > {station.code} </td>
+            <td className="p-3"> {station.contact_phone} </td>
+            <td className="p-3"> {station.contact_email} </td>
             <td className="p-3"> <span className={ station.status === "active" ? "text-green-400" : "text-red-400" }>
                 {station.status} </span>
             </td>
