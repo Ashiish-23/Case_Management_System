@@ -107,18 +107,28 @@ function buildEmailForEvent(eventType, data) {
       };
 
     /* ================= STATION EVENTS ================= */
-
-    case "STATION_ASSIGNED":
-      return {
-        to: data.email,
-        subject: `[Police CEMS] Station Assignment`,
-        html: `
-          <h2>Station Assigned</h2>
-          <p>Hello ${escapeHTML(data.fullName)}</p>
-          <p>You have been assigned to: <b>${escapeHTML(data.stationName)}</b></p>
-        `,
-        referenceId: data.userId
-      };
+      case "STATION_ASSIGNED":
+  return {
+    to: data.email,
+    subject: `[Police CEMS] Station Assignment Notification`,
+    html: `
+      <div style="font-family: Arial; padding:24px;">
+        <h2 style="color:#2563eb;">Station Assignment</h2>
+        <p>Hello ${escapeHTML(data.fullName)},</p>
+        <p>You have been officially assigned to the following station:</p>
+        <table style="margin-top:12px;">
+          <tr>
+            <td><b>Station</b></td>
+            <td>${escapeHTML(data.stationName)}</td>
+          </tr>
+        </table>
+        <p style="margin-top:16px;">
+          Please log in to the system to view your assignment details.
+        </p>
+      </div>
+    `,
+    referenceId: data.userId
+  };
 
     case "STATION_STATUS_CHANGED":
       return {

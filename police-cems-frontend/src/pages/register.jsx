@@ -142,7 +142,7 @@ export default function Register() {
   /* ================= UI ================= */
   const inputStyle = "w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
   return (
-    <div className="bg-blue-900 flex items-center justify-center p-4">
+    <div className="bg-blue-900 flex items-center justify-center p-4 min-h-screen">
       <div className="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-white">Officer Registration</h2>

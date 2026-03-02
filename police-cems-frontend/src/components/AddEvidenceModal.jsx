@@ -63,10 +63,15 @@ export default function AddEvidenceModal({
     const cat = safeText(category);
     const station = safeText(seizedAtStation);
 
-    if (!desc || !cat || !station) {
-      alert("All fields are required");
-      return;
-    }
+    if (!desc || !cat) {
+  alert("All fields are required");
+  return;
+}
+
+if (!station || station.length < 2) {
+  alert("Please select a valid station from the list");
+  return;
+}
 
     const fileError = validateFile(image);
     if (fileError) {
@@ -174,7 +179,7 @@ export default function AddEvidenceModal({
 
           <div>
             <label className={labelStyle}>Seized At Station *</label>
-            <StationAutocomplete value={seizedAtStation} onSelect={(station) => setSeizedAtStation(station.name) } />
+            <StationAutocomplete value={seizedAtStation} onSelect={(station) => { if (!station?.name) return; setSeizedAtStation(station.name); }} />
           </div>
 
           <div>

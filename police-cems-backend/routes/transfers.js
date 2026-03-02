@@ -18,12 +18,6 @@ function normalizeString(str) {
 router.post("/create", auth, async (req, res) => {
   const client = await pool.connect();
 
-  let transferId;
-  let evidenceCode;
-  let caseNumber;
-  let fromStation;
-  let toStationTrim;
-
   try {
     const {
       evidenceId,
@@ -33,13 +27,12 @@ router.post("/create", auth, async (req, res) => {
       reason
     } = req.body;
 
-    /* ---------- STRICT VALIDATION ---------- */
     if (
       !evidenceId ||
-      typeof toStation !== "string" ||
-      typeof reason !== "string" ||
-      typeof toOfficerId !== "string" ||
-      typeof toOfficerEmail !== "string"
+      !toStation ||
+      !toOfficerId ||
+      !toOfficerEmail ||
+      !reason
     ) {
       return res.status(400).json({ error: "Invalid request payload" });
     }
@@ -50,15 +43,25 @@ router.post("/create", auth, async (req, res) => {
       });
     }
 
-    toStationTrim = toStation.trim();
+    const toStationTrim = toStation.trim();
 
-    if (toStationTrim.length < 2 || toStationTrim.length > 100) {
-      return res.status(400).json({ error: "Invalid station name" });
+    /* ---------- CHECK STATION EXISTS & ACTIVE ---------- */
+    const stationCheck = await client.query(
+      `SELECT status FROM stations WHERE name = $1`,
+      [toStationTrim]
+    );
+
+    if (!stationCheck.rows.length) {
+      return res.status(404).json({ error: "Station not found" });
+    }
+
+    if (stationCheck.rows[0].status !== "active") {
+      return res.status(403).json({ error: "Station is disabled" });
     }
 
     await client.query("BEGIN");
 
-    /* ---------- VERIFY EVIDENCE ---------- */
+    /* ---------- FETCH EVIDENCE ---------- */
     const evRes = await client.query(
       `
       SELECT e.id, e.case_id, e.evidence_code, c.case_number
@@ -74,25 +77,26 @@ router.post("/create", auth, async (req, res) => {
     }
 
     const caseId = evRes.rows[0].case_id;
-    caseNumber = evRes.rows[0].case_number;
-    evidenceCode = evRes.rows[0].evidence_code;
+    const caseNumber = evRes.rows[0].case_number;
+    const evidenceCode = evRes.rows[0].evidence_code;
 
     /* ---------- LOCK CUSTODY ---------- */
-    const custodyRes = await client.query( `SELECT * FROM evidence_custody WHERE evidence_id = $1 FOR UPDATE`, [evidenceId] );
+    const custodyRes = await client.query(
+      `SELECT * FROM evidence_custody WHERE evidence_id = $1 FOR UPDATE`,
+      [evidenceId]
+    );
 
     if (!custodyRes.rows.length) {
       throw new Error("CUSTODY_NOT_FOUND");
     }
 
     const custody = custodyRes.rows[0];
-    fromStation = custody.current_station;
 
-    /* ⭐ AUTHORIZATION: ONLY CURRENT HOLDER CAN TRANSFER */
     if (custody.current_holder_id !== req.user.userId) {
       throw new Error("NOT_CUSTODY_HOLDER");
     }
 
-    /* ---------- RESOLVE RECEIVING OFFICER ---------- */
+    /* ---------- FIND RECEIVING OFFICER ---------- */
     const officerRes = await client.query(
       `
       SELECT id
@@ -100,7 +104,7 @@ router.post("/create", auth, async (req, res) => {
       WHERE LOWER(TRIM(login_id)) = LOWER(TRIM($1))
       AND LOWER(TRIM(email)) = LOWER(TRIM($2))
       `,
-      [toOfficerId, toOfficerEmail]
+      [toOfficerId.trim(), toOfficerEmail.trim()]
     );
 
     if (!officerRes.rows.length) {
@@ -109,16 +113,18 @@ router.post("/create", auth, async (req, res) => {
 
     const toUserId = officerRes.rows[0].id;
 
-    /* ---------- NO-OP TRANSFER BLOCK ---------- */
     if (custody.current_holder_id === toUserId) {
       throw new Error("SAME_OFFICER_TRANSFER");
     }
 
-    if ( normalizeString(custody.current_station) === normalizeString(toStationTrim)) {
+    if (
+      custody.current_station.trim().toLowerCase() ===
+      toStationTrim.toLowerCase()
+    ) {
       throw new Error("SAME_STATION_TRANSFER");
     }
 
-    /* ---------- INSERT LEDGER ENTRY ---------- */
+    /* ---------- INSERT TRANSFER ---------- */
     const transferRes = await client.query(
       `
       INSERT INTO evidence_transfers (
@@ -134,7 +140,7 @@ router.post("/create", auth, async (req, res) => {
         transfer_date,
         created_at
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,CURRENT_DATE,NOW())
+      VALUES ($1,$2,$3,$4,$5,$6,$7,'TRANSFER',$8,CURRENT_DATE,NOW())
       RETURNING id
       `,
       [
@@ -145,12 +151,9 @@ router.post("/create", auth, async (req, res) => {
         req.user.userId,
         custody.current_station,
         toStationTrim,
-        "TRANSFER",
         reason.trim()
       ]
     );
-
-    transferId = transferRes.rows[0].id;
 
     /* ---------- UPDATE CUSTODY ---------- */
     await client.query(
@@ -166,58 +169,61 @@ router.post("/create", auth, async (req, res) => {
 
     await client.query("COMMIT");
 
+    /* ---------- EMAIL (SIDE EFFECT) ---------- */
+    try {
+      await sendEventEmail({
+        eventType: "EVIDENCE_TRANSFERRED",
+        data: {
+          email: toOfficerEmail,
+          evidenceCode,
+          caseNumber,
+          fromStation: custody.current_station,
+          toStation: toStationTrim
+        },
+        db: pool
+      });
+    } catch (err) {
+      console.error("Transfer email failed:", err.message);
+    }
+
+    return res.json({
+      success: true,
+      transferId: transferRes.rows[0].id
+    });
+
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("TRANSFER DB FAILED:", err.message);
 
-    /* ⭐ SAFE ERROR MAPPING */
     if (err.message === "NOT_CUSTODY_HOLDER") {
       return res.status(403).json({ error: "You are not custody holder" });
     }
 
-    if ( err.message === "SAME_OFFICER_TRANSFER" || err.message === "SAME_STATION_TRANSFER") {
-      return res.status(400).json({ error: "Invalid transfer request" });
+    if (err.message === "SAME_OFFICER_TRANSFER") {
+      return res.status(400).json({ error: "Cannot transfer to same officer" });
     }
 
-    if ( err.message === "EVIDENCE_NOT_FOUND" || err.message === "CUSTODY_NOT_FOUND" ) {
-      return res.status(404).json({ error: "Evidence record not found" });
+    if (err.message === "SAME_STATION_TRANSFER") {
+      return res.status(400).json({ error: "Cannot transfer to same station" });
     }
 
+    if (err.message === "EVIDENCE_NOT_FOUND") {
+      return res.status(404).json({ error: "Evidence not found" });
+    }
+
+    if (err.message === "CUSTODY_NOT_FOUND") {
+      return res.status(404).json({ error: "Custody record missing" });
+    }
+
+    if (err.message === "OFFICER_NOT_FOUND") {
+      return res.status(404).json({ error: "Receiving officer not found" });
+    }
+
+    console.error("TRANSFER ERROR:", err.message);
     return res.status(500).json({ error: "Transfer failed" });
+
   } finally {
     client.release();
   }
-
-  const stationCheck = await pool.query( `SELECT status FROM stations WHERE name = $1`, [station_name] );
-  if (stationCheck.rows.length === 0) {
-    return res.status(404).json({ error: "Station not found" });
-  }
-  if (stationCheck.rows[0].status !== "active") {
-    return res.status(403).json({ error: "Station is disabled" });
-  }
-
-  /* ---------- EMAIL SIDE EFFECT ---------- */
-  try {
-    await sendEventEmail({
-      eventType: "EVIDENCE_TRANSFERRED",
-      data: {
-        email: req.body.toOfficerEmail,
-        evidenceCode,
-        caseNumber,
-        transferId,
-        fromStation,
-        toStation: toStationTrim
-      },
-      db: pool
-    });
-  } catch (err) {
-    console.error("Transfer email failed:", err.message);
-  }
-
-  res.json({
-    success: true,
-    transferId
-  });
 });
 
 /* =========================================================

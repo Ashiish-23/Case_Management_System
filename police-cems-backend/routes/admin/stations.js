@@ -82,40 +82,6 @@ router.get("/", auth, requireAdmin, async (req, res) => {
 });
 
 /* =====================================================
-   AUTOCOMPLETE SEARCH (Transfers / assignment)
-===================================================== */
-router.get("/search", auth, async (req, res) => {
-  try {
-    const q = req.query.q?.trim() || "";
-
-    if (q.length < 1)
-      return res.json([]);
-    const result = await pool.query(`
-      SELECT
-        id,
-        name,
-        city,
-        district,
-        contact_phone,
-        contact_email,
-        code
-      FROM stations
-      WHERE
-        status = 'active'
-        AND name ILIKE $1
-      ORDER BY name
-      LIMIT 10
-    `, [`${q}%`]);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Station search error:", err);
-    res.status(500).json({
-      error: "Search failed"
-    });
-  }
-});
-
-/* =====================================================
    CREATE NEW STATION
 ===================================================== */
 router.post("/", auth, requireAdmin, async (req, res) => {

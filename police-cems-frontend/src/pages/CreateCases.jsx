@@ -175,7 +175,8 @@ export default function CreateCase() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <StationAutocomplete value={form.station_name} onSelect={(station) => setForm({ ...form, station_name: station.name }) } />
+              <label className={labelStyle}>Station *</label>
+              <StationAutocomplete value={form.stationName} onSelect={(station) => setForm(prev => ({ ...prev, stationName: station.name })) } />
             </div>
 
             <div>

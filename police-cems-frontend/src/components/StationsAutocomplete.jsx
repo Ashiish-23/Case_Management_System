@@ -1,13 +1,28 @@
 import { useState, useEffect, useRef } from "react";
 
+/* ================= SAFE FETCH ================= */
 async function secureFetch(url) {
   const token = sessionStorage.getItem("token");
 
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
   const res = await fetch(url, {
-    headers: { Authorization: "Bearer " + token }
+    headers: {
+      Authorization: "Bearer " + token
+    }
   });
 
-  if (!res.ok) throw new Error("Search failed");
+  if (res.status === 401 || res.status === 403) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!res.ok) {
+    const payload = await res.json().catch(() => ({}));
+    throw new Error(payload.error || "Search failed");
+  }
+
   return res.json();
 }
 
@@ -21,6 +36,7 @@ export default function StationAutocomplete({ value = "", onSelect }) {
 
   const containerRef = useRef(null);
   const debounceRef = useRef(null);
+  const requestRef = useRef(0);   // prevents race conditions
 
   /* ================= SYNC WITH PARENT ================= */
   useEffect(() => {
@@ -30,7 +46,9 @@ export default function StationAutocomplete({ value = "", onSelect }) {
   /* ================= SEARCH ================= */
   useEffect(() => {
 
-    if (!query.trim()) {
+    const trimmed = query.trim();
+
+    if (trimmed.length < 2) {
       setResults([]);
       setShow(false);
       return;
@@ -39,12 +57,18 @@ export default function StationAutocomplete({ value = "", onSelect }) {
     clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(async () => {
+
+      const currentRequest = ++requestRef.current;
+
       try {
         setLoading(true);
 
         const data = await secureFetch(
-          `http://localhost:5000/api/admin/stations/search?q=${encodeURIComponent(query)}`
+          `http://localhost:5000/api/stations/search?q=${encodeURIComponent(trimmed)}`
         );
+
+        // prevent outdated responses from overwriting newer results
+        if (currentRequest !== requestRef.current) return;
 
         setResults(data || []);
         setShow(true);
@@ -52,9 +76,12 @@ export default function StationAutocomplete({ value = "", onSelect }) {
 
       } catch (err) {
         console.error("Station search error:", err.message);
+        setResults([]);
+        setShow(false);
       } finally {
         setLoading(false);
       }
+
     }, 300);
 
     return () => clearTimeout(debounceRef.current);
@@ -122,7 +149,7 @@ export default function StationAutocomplete({ value = "", onSelect }) {
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => query && setShow(true)}
+        onFocus={() => query.trim().length >= 2 && setShow(true)}
         onKeyDown={handleKeyDown}
         placeholder="Search station..."
         className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
