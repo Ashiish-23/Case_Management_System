@@ -27,13 +27,7 @@ router.post("/create", auth, async (req, res) => {
       reason
     } = req.body;
 
-    if (
-      !evidenceId ||
-      !toStation ||
-      !toOfficerId ||
-      !toOfficerEmail ||
-      !reason
-    ) {
+    if (!evidenceId || !toStation || !toOfficerId || !toOfficerEmail || !reason) {
       return res.status(400).json({ error: "Invalid request payload" });
     }
 
@@ -45,7 +39,7 @@ router.post("/create", auth, async (req, res) => {
 
     const toStationTrim = toStation.trim();
 
-    /* ---------- CHECK STATION EXISTS & ACTIVE ---------- */
+    /* ---------- STATION VALIDATION ---------- */
     const stationCheck = await client.query(
       `SELECT status FROM stations WHERE name = $1`,
       [toStationTrim]
@@ -92,7 +86,10 @@ router.post("/create", auth, async (req, res) => {
 
     const custody = custodyRes.rows[0];
 
-    if (custody.current_holder_id !== req.user.userId) {
+    console.log("TOKEN USER:", req.user.userId);
+    console.log("DB HOLDER:", custody.current_holder_id);
+
+    if (String(custody.current_holder_id) !== String(req.user.userId)) {
       throw new Error("NOT_CUSTODY_HOLDER");
     }
 
@@ -169,7 +166,7 @@ router.post("/create", auth, async (req, res) => {
 
     await client.query("COMMIT");
 
-    /* ---------- EMAIL (SIDE EFFECT) ---------- */
+    /* ---------- EMAIL (NON-BLOCKING) ---------- */
     try {
       await sendEventEmail({
         eventType: "EVIDENCE_TRANSFERRED",
