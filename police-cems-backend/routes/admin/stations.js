@@ -47,7 +47,7 @@ router.get("/", auth, requireAdmin, async (req, res) => {
         (
           SELECT COUNT(*)
           FROM officer_station_assignments osa
-          WHERE osa.station_name = s.name
+          WHERE osa.station_id = s.id
           AND osa.relieved_at IS NULL
         ) AS officer_count,
         /* CASE COUNT */
@@ -266,7 +266,7 @@ router.get("/:id/officers", auth, requireAdmin, async (req, res) => {
       JOIN users u
       ON u.id = osa.officer_id
       WHERE
-        osa.station_name = $1
+        osa.station_id = $1
         AND osa.relieved_at IS NULL
       ORDER BY u.full_name `, [stationName]);
 
