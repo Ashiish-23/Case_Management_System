@@ -303,8 +303,8 @@ export default function AdminTransfers() {
                 </td>
 
                 <td className="px-6 py-3 text-slate-300 text-sm">
-                  {t.transferred_at
-                    ? new Date(t.transferred_at).toLocaleString()
+                  {t.created_at
+                    ? new Date(t.created_at).toLocaleString()
                     : "—"}
                 </td>
 

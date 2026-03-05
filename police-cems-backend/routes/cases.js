@@ -46,12 +46,9 @@ async function generateCaseNumber(client) {
    CREATE CASE
 ========================================================= */
 router.post("/create", auth, async (req, res) => {
-
   const client = await pool.connect();
-
   try {
     await client.query("BEGIN");
-
     const officerId = req.user.userId;
 
     if (!isValidUUID(officerId)) {
@@ -65,30 +62,27 @@ router.post("/create", auth, async (req, res) => {
       officerName,
       officerRank,
       firNumber,
-      stationName // Only used if admin
+      stationName
     } = req.body;
 
-    /* ================= DETERMINE STATION ================= */
-
     let finalStationName = null;
-
+    /* ADMIN CAN SPECIFY STATION */
     if (req.user.role === "admin") {
-
-      // Admin can specify station
       if (!stationName)
         return res.status(400).json({ error: "Station required" });
-
       finalStationName = cleanText(stationName, 120);
+    }
 
-    } else {
-
-      // Officer → auto derive station
+    /* OFFICER AUTO STATION */
+    else {
       const stationResult = await client.query(`
-        SELECT station_name
-        FROM officer_station_assignments
-        WHERE officer_id = $1
-        AND relieved_at IS NULL
-      `, [officerId]);
+        SELECT s.name
+        FROM officer_station_assignments osa
+        JOIN stations s
+          ON s.id = osa.station_id
+        WHERE osa.officer_id = $1
+        AND osa.relieved_at IS NULL
+      `,[officerId]);
 
       if (!stationResult.rows.length) {
         return res.status(403).json({
@@ -96,31 +90,25 @@ router.post("/create", auth, async (req, res) => {
         });
       }
 
-      finalStationName = stationResult.rows[0].station_name;
+      finalStationName = stationResult.rows[0].name;
     }
 
-    /* ================= VALIDATE STATION STATUS ================= */
-
+    /* VALIDATE STATION */
     const stationCheck = await client.query(`
       SELECT status
       FROM stations
       WHERE name = $1
-    `, [finalStationName]);
+    `,[finalStationName]);
 
-    if (!stationCheck.rows.length) {
-      return res.status(404).json({ error: "Station not found" });
-    }
+    if (!stationCheck.rows.length)
+      return res.status(404).json({ error:"Station not found" });
 
-    if (stationCheck.rows[0].status !== "active") {
-      return res.status(403).json({ error: "Station is disabled" });
-    }
-
-    /* ================= GENERATE CASE NUMBER ================= */
-
+    if (stationCheck.rows[0].status !== "active")
+      return res.status(403).json({ error:"Station disabled" });
+    /* GENERATE CASE NUMBER */
     const caseNumber = await generateCaseNumber(client);
 
-    /* ================= INSERT CASE ================= */
-
+    /* INSERT CASE */
     await client.query(`
       INSERT INTO cases (
         case_number,
@@ -135,30 +123,31 @@ router.post("/create", auth, async (req, res) => {
         created_by
       )
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-    `, [
+    `,[
       caseNumber,
-      cleanText(firNumber, 60),
+      cleanText(firNumber,60),
       finalStationName,
-      cleanText(officerName, 120),
-      cleanText(officerRank, 60),
+      cleanText(officerName,120),
+      cleanText(officerRank,60),
       officerId,
-      cleanText(caseTitle, 150),
-      cleanText(description, 2000),
-      cleanText(caseType, 80),
+      cleanText(caseTitle,150),
+      cleanText(description,2000),
+      cleanText(caseType,80),
       officerId
     ]);
 
     await client.query("COMMIT");
-
-    res.json({ success: true, caseNumber });
-
-  } catch (err) {
-
+    res.json({
+      success:true,
+      caseNumber
+    });
+  } catch(err){
     await client.query("ROLLBACK");
-    console.error("Case creation error:", err);
-    res.status(500).json({ error: "Case creation failed" });
-
-  } finally {
+    console.error("Case creation error:",err);
+    res.status(500).json({
+      error:"Case creation failed"
+    });
+  } finally{
     client.release();
   }
 });

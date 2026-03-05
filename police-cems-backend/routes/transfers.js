@@ -194,4 +194,56 @@ router.post("/create", auth, async (req, res) => {
   }
 });
 
+/* =========================================================
+   TRANSFER HISTORY
+========================================================= */
+router.get("/history/:evidenceId", auth, async (req, res) => {
+  try {
+    const { evidenceId } = req.params;
+
+    if (!evidenceId) {
+      return res.status(400).json({ error: "Evidence ID required" });
+    }
+
+    const result = await pool.query(
+`
+SELECT
+  t.id,
+  t.case_id,
+  t.evidence_id,
+
+  fs.name AS from_station,
+  ts.name AS to_station,
+
+  t.remarks,
+  t.transfer_date,
+  t.created_at,
+
+  fu.full_name AS from_officer,
+  tu.full_name AS to_officer,
+  iu.full_name AS transferred_by
+
+FROM evidence_transfers t
+
+LEFT JOIN stations fs ON fs.id = t.from_station::uuid
+LEFT JOIN stations ts ON ts.id = t.to_station::uuid
+
+LEFT JOIN users fu ON fu.id = t.from_user_id
+LEFT JOIN users tu ON tu.id = t.to_user_id
+LEFT JOIN users iu ON iu.id = t.initiated_by
+
+WHERE t.evidence_id = $1::uuid
+ORDER BY t.created_at DESC
+`,
+[evidenceId]
+);
+
+    // Always return an array, even if empty
+    res.json(result.rows || []);
+  } catch (err) {
+    console.error("TRANSFER HISTORY ERROR:", err.message);
+    res.status(500).json({ error: "Failed to load transfer history" });
+  }
+});
+
 module.exports = router;
